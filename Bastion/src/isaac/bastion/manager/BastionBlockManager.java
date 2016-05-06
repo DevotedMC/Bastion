@@ -1,10 +1,5 @@
 package isaac.bastion.manager;
 
-import isaac.bastion.Bastion;
-import isaac.bastion.BastionBlock;
-import isaac.bastion.storage.BastionBlockSet;
-import isaac.bastion.util.QTBox;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +7,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -36,16 +30,18 @@ import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.Dispenser;
 
+import isaac.bastion.Bastion;
+import isaac.bastion.BastionBlock;
+import isaac.bastion.BastionType;
+import isaac.bastion.storage.BastionBlockSet;
 import vg.civcraft.mc.citadel.Citadel;
 import vg.civcraft.mc.citadel.reinforcement.PlayerReinforcement;
-import vg.civcraft.mc.namelayer.NameAPI;
-import vg.civcraft.mc.namelayer.NameLayerPlugin;
+import vg.civcraft.mc.civmodcore.locations.QTBox;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 
 public class BastionBlockManager {
 	public BastionBlockSet set;
 	private Map<String, Long> playerLastEroded = new HashMap<String, Long>();
-	private static Random generator = new Random();
 
 	public BastionBlockManager() {
 		set = new BastionBlockSet();
@@ -56,8 +52,8 @@ public class BastionBlockManager {
 		set.close();
 	}
 
-	public void addBastion(Location location, PlayerReinforcement reinforcement) {
-		BastionBlock toAdd = new BastionBlock(location, reinforcement);
+	public void addBastion(Location location, PlayerReinforcement reinforcement, BastionType type) {
+		BastionBlock toAdd = new BastionBlock(location, reinforcement, type);
 		set.add(toAdd);
 	}
 	
@@ -77,27 +73,9 @@ public class BastionBlockManager {
 	private void erodeFromAction(String player, Set<BastionBlock> blocking, boolean fromBlock) {
 		if (onCooldown(player)) return;
 		
-		if (Bastion.getConfigManager().getBastionBlocksToErode() < 0) {
-			for (BastionBlock bastion : blocking){
-				if (fromBlock) {
-					bastion.erode(bastion.erosionFromBlock());
-				} else {
-					bastion.erode(bastion.erosionFromPearl());
-				}
-			}
-		} else {
-			// TODO: Batch!
-			List<BastionBlock> ordered = new LinkedList<BastionBlock>(blocking);
-			for (int i = 0;i < ordered.size() && (i < Bastion.getConfigManager().getBastionBlocksToErode());++i){
-				int erode = generator.nextInt(ordered.size()); 
-				BastionBlock toErode = ordered.get(erode);
-				if (fromBlock) {
-					toErode.erode(toErode.erosionFromBlock());
-				} else {
-					toErode.erode(toErode.erosionFromPearl());
-				}
-				ordered.remove(erode);
-			}
+		for(BastionBlock bastion : blocking) {
+			double erosion = fromBlock ? bastion.erosionFromBlock() : bastion.erosionFromPearl();
+			bastion.erode(erosion);
 		}
 	}
 	
@@ -108,7 +86,7 @@ public class BastionBlockManager {
 			return false;
 		}
 		
-		if ((System.currentTimeMillis() - playerLastEroded.get(player)) < BastionBlock.MIN_BREAK_TIME) {
+		if ((System.currentTimeMillis() - playerLastEroded.get(player)) < Bastion.getConfigManager().getPlacementCooldown()) {
 			return true;
 		} else {
 			playerLastEroded.put(player, System.currentTimeMillis());
@@ -374,23 +352,20 @@ public class BastionBlockManager {
 	}
 	
 	public void handleEnderPearlLanded(PlayerTeleportEvent event) {
-		if (!Bastion.getConfigManager().getEnderPearlsBlocked()) return; //don't block if the feature isn't enabled.
 		if (event.getPlayer().hasPermission("Bastion.bypass")) return; //I'm not totally sure about the implications of this combined with humbug. It might cause some exceptions. Bukkit will catch.
 		if (event.getCause() != TeleportCause.ENDER_PEARL) return; // Only handle enderpearl cases
 		
 		Set<BastionBlock> blocking = this.getBlockingBastions(event.getTo(), event.getPlayer(), PermissionType.getPermission("BASTION_PEARL"));
 		
-		if (Bastion.getConfigManager().getEnderPearlRequireMaturity()) {
-			Iterator<BastionBlock> i = blocking.iterator();
+		Iterator<BastionBlock> i = blocking.iterator();
 		
-			while (i.hasNext()) {
-				BastionBlock bastion = i.next();
-				if (!bastion.isMature()){
-					i.remove();
-				}
+		while (i.hasNext()) {
+			BastionBlock bastion = i.next();
+			if (bastion.getType().isBlockMidair() || (bastion.getType().isRequireMaturity() && !bastion.isMature())){
+				i.remove();
 			}
 		}
-		
+			
 		if (blocking.size() > 0) {
 			this.erodeFromTeleport(event.getTo(), event.getPlayer().getName(), blocking);
 			event.getPlayer().sendMessage(ChatColor.RED+"Ender pearl blocked by Bastion Block");
@@ -399,33 +374,6 @@ public class BastionBlockManager {
 			event.setCancelled(true);
 			return;
 		}
-
-		if (!Bastion.getConfigManager().blockMidAir()) { // Do we block launches or mid-air?
-			return; // only block landings as above.
-		}
-		
-		blocking = this.getBlockingBastions(event.getFrom(), event.getPlayer(), PermissionType.getPermission("BASTION_PEARL"));
-		
-		if (Bastion.getConfigManager().getEnderPearlRequireMaturity()) {
-			Iterator<BastionBlock> i = blocking.iterator();
-		
-			while (i.hasNext()) {
-				BastionBlock bastion = i.next();
-				if (!bastion.isMature()){
-					i.remove();
-				}
-			}
-		}
-		
-		if (blocking.size() > 0){
-			// TODO: Double check: We use getFrom() to find a list of blockers, but previously used erode getTo() if a blocker was found.
-			this.erodeFromTeleport(event.getFrom(), event.getPlayer().getName(), blocking);
-			event.getPlayer().sendMessage(ChatColor.RED + "Ender pearl blocked by Bastion Block");
-			// TODO: Make consumption of pearls optional here.
-			event.getPlayer().getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
-			event.setCancelled(true);
-			return;
-		}	
 	}
 
 }

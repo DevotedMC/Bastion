@@ -1,13 +1,6 @@
 package isaac.bastion.listeners;
 
-import isaac.bastion.Bastion;
-import isaac.bastion.BastionBlock;
-import isaac.bastion.commands.PlayersStates;
-import isaac.bastion.commands.PlayersStates.Mode;
-import isaac.bastion.manager.BastionBlockManager;
-
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,15 +8,19 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import isaac.bastion.Bastion;
+import isaac.bastion.BastionBlock;
+import isaac.bastion.commands.PlayersStates;
+import isaac.bastion.commands.PlayersStates.Mode;
+import isaac.bastion.manager.BastionBlockManager;
 import vg.civcraft.mc.citadel.Citadel;
 import vg.civcraft.mc.citadel.reinforcement.PlayerReinforcement;
 
 public class CommandListener implements Listener {
 	private static BastionBlockManager manager;
-	private Material bastionBlock = Bastion.getConfigManager().getBastionBlockMaterial();
 	
 	public CommandListener() {
-		manager=Bastion.getBastionManager();
+		manager = Bastion.getBastionManager();
 	}
 	
 	@EventHandler(ignoreCancelled=true)
@@ -71,7 +68,7 @@ public class CommandListener implements Listener {
 			}
 			bastionBlock.mature();
 			player.sendMessage(ChatColor.GREEN + "Matured");
-		} else if (block.getType() == bastionBlock && PlayersStates.playerInMode(player, Mode.BASTION)) {
+		} else if (BastionListener.pendingBastions.containsKey(block.getLocation()) && PlayersStates.playerInMode(player, Mode.BASTION)) {
 			//event.getPlayer().sendMessage(bastionBlock.name());
 			PlayerReinforcement reinforcement = (PlayerReinforcement) Citadel.getReinforcementManager().
 					getReinforcement(block.getLocation());
@@ -81,7 +78,7 @@ public class CommandListener implements Listener {
 			}
 
 			if (reinforcement.canBypass(player)) {
-				Bastion.getBastionManager().addBastion(block.getLocation(), reinforcement);
+				Bastion.getBastionManager().addBastion(block.getLocation(), reinforcement, BastionListener.pendingBastions.get(block.getLocation()));
 				player.sendMessage(ChatColor.GREEN + "Bastion block created");
 				PlayersStates.touchPlayer(player);
 			} else{

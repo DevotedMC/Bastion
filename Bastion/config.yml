@@ -6,22 +6,40 @@ mysql:
   port: 3306
   prefix: ''
   savesPerDay: 64
-BastionBlock:
-  material: SPONGE
-  #If squarefield is set to wrong, the field will be a circle
-  squarefield: true
-  effectRadius: 10
-  includeYlevel: true
-  startScaleFactor: 100
-  finalScaleFactor: 0.2
-  warmUpTime: 86400000
-  maxBreaksPerMinute: 30
-  erosionRatePerDay: 0
-  destroyOnRemove: true
-  blocksToErode: 1
-  EnderPearls:
-    preventEnderPearl: true 
-    block_midair: false
-    scaleFac: 1
-    requireMaturity: true 
-    consumeOnBlock: false  
+placement_cooldown: 2000 #delay in ms
+bastions:
+  bastion:
+    block:
+      material: SPONGE
+    squarefield: true
+    effectRadius: 10
+    includeYlevel: true
+    startScaleFactor: 100
+    finalScaleFactor: 0.2
+    warmupTime: 86400000
+    erosionRatePerDay: 0
+    destroyOnRemove: true
+    blockPearls: true
+    blockMidair: false
+    pearlScaleFactor: 1
+    requireMaturity: true
+    consumeOnBlock: false
+    blocksToErode: 1
+  betterbastion:
+    block:
+      material: SPONGE
+      lore: A better bastion
+    squarefield: false
+    effectRadius: 15
+    includeYlevel: true
+    startScaleFactor: 100
+    finalScaleFactor: 0.2
+    warmupTime: 86400000
+    erosionRatePerDay: 0
+    destroyOnRemove: true
+    blockPearls: true
+    blockMidair: true
+    pearlScaleFactor: 5
+    requireMaturity: true
+    consumeOnBlock: true
+    blocksToErode: 1

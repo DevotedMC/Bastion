@@ -2,6 +2,7 @@ package isaac.bastion.storage;
 
 import isaac.bastion.Bastion;
 import isaac.bastion.BastionBlock;
+import isaac.bastion.BastionType;
 import isaac.bastion.manager.ConfigManager;
 
 import java.sql.PreparedStatement;
@@ -36,7 +37,7 @@ public class BastionBlockStorage {
 	
 	public static void prepareStatements() {
 		if (tablesCreated) {
-			insertBastion = db.prepareStatement("INSERT INTO "+BastionBlockStorage.bastionBlocksTable+" (loc_x,loc_y,loc_z,loc_world,placed,fraction) VALUES(?,?,?,?,?,?);");
+			insertBastion = db.prepareStatement("INSERT INTO "+BastionBlockStorage.bastionBlocksTable+" (loc_x,loc_y,loc_z,loc_world,placed,fraction,type) VALUES(?,?,?,?,?,?,?);");
 			updateBastion = db.prepareStatement("UPDATE "+BastionBlockStorage.bastionBlocksTable+" set placed=?,fraction=? where bastion_id=?;");
 			deleteBastion = db.prepareStatement("DELETE FROM "+BastionBlockStorage.bastionBlocksTable+" WHERE bastion_id=?;");
 		}
@@ -55,6 +56,7 @@ public class BastionBlockStorage {
 				+ "PRIMARY KEY (`bastion_id`)"
 				+ ");";
 		db.execute(toExicute);
+		db.execute("ALTER TABLE " + bastionBlocksTable + " ADD COLUMN IF NOT EXIST type varchar(42) NOT NULL");
 	}
 	public Enumeration<BastionBlock> getAllBastions(World world) {
 		return new BastionBlockEnumerator(world);
@@ -96,6 +98,7 @@ public class BastionBlockStorage {
 			int x,y,z,id;
 			long placed;
 			float balance;
+			String type;
 			try {
 				if (result == null || !result.next()) {
 					result = null;
@@ -107,13 +110,14 @@ public class BastionBlockStorage {
 				id = result.getInt("bastion_id");
 				placed = result.getLong("placed");
 				balance = result.getFloat("fraction");
+				type = result.getString("type");
 
 			} catch (SQLException e) {
 				e.printStackTrace();
 				return null;
 			}
 			Location loc = new Location(world, x, y, z);
-			return new BastionBlock(loc, placed, balance, id);
+			return new BastionBlock(loc, placed, balance, id, BastionType.getBastionType(type));
 		}
 
 		public Database getDatabase(){

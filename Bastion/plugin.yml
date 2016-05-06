@@ -1,7 +1,7 @@
 name: ${project.name}
 version: ${project.version}
 main: isaac.bastion.Bastion
-depend: [Citadel, NameLayer]
+depend: [CivModCore, Citadel, NameLayer]
 softdepend: [Humbug]
 commands:
    Bastion:

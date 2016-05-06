@@ -1,12 +1,5 @@
 package isaac.bastion.storage;
 
-import isaac.bastion.Bastion;
-import isaac.bastion.BastionBlock;
-import isaac.bastion.manager.ConfigManager;
-import isaac.bastion.manager.EnderPearlManager;
-import isaac.bastion.util.QTBox;
-import isaac.bastion.util.SparseQuadTree;
-
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -20,6 +13,14 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
+
+import isaac.bastion.Bastion;
+import isaac.bastion.BastionBlock;
+import isaac.bastion.BastionType;
+import isaac.bastion.manager.ConfigManager;
+import isaac.bastion.manager.EnderPearlManager;
+import vg.civcraft.mc.civmodcore.locations.QTBox;
+import vg.civcraft.mc.civmodcore.locations.SparseQuadTree;
 
 public class BastionBlockSet implements Set<BastionBlock>, Iterable<BastionBlock> {
 	private Map<World,SparseQuadTree> blocks;
@@ -91,10 +92,11 @@ public class BastionBlockSet implements Set<BastionBlock>, Iterable<BastionBlock
 		for (QTBox box : boxes) {
 			if (box instanceof BastionBlock) {
 				BastionBlock bastion = (BastionBlock)box;
+				BastionType type = bastion.getType();
 				// Fixed for square field nearness, using diagonal distance as max -- (radius * sqrt(2)) ^ 2
-				if (((config.squareField() && bastion.getLocation().distanceSquared(loc) <= maxBoxDistanceSquared) ||   
-							(!config.squareField() && bastion.getLocation().distanceSquared(loc) <= maxDistanceSquared)) &&
-							(!config.getEnderPearlRequireMaturity() || bastion.isMature())) {
+				if (((type.isSquare() && bastion.getLocation().distanceSquared(loc) <= maxBoxDistanceSquared) ||   
+							(!type.isSquare() && bastion.getLocation().distanceSquared(loc) <= maxDistanceSquared)) &&
+							(!type.isRequireMaturity() || bastion.isMature())) {
 					result.add(bastion);
 				}
 			}
