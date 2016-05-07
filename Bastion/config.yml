@@ -6,7 +6,6 @@ mysql:
   port: 3306
   prefix: ''
   savesPerDay: 64
-placement_cooldown: 2000 #delay in ms
 bastions:
   bastion:
     block:
@@ -18,6 +17,7 @@ bastions:
     finalScaleFactor: 0.2
     warmupTime: 86400000
     erosionRatePerDay: 0
+    placementCooldown: 2000 #delay in ms
     destroyOnRemove: true
     blockPearls: true
     blockMidair: false
@@ -36,6 +36,7 @@ bastions:
     finalScaleFactor: 0.2
     warmupTime: 86400000
     erosionRatePerDay: 0
+    placementCooldown: 4000 #delay in ms
     destroyOnRemove: true
     blockPearls: true
     blockMidair: true

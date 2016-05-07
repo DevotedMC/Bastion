@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -30,7 +30,6 @@ import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.Dispenser;
 
-import isaac.bastion.Bastion;
 import isaac.bastion.BastionBlock;
 import isaac.bastion.BastionType;
 import isaac.bastion.storage.BastionBlockSet;
@@ -41,7 +40,8 @@ import vg.civcraft.mc.namelayer.permission.PermissionType;
 
 public class BastionBlockManager {
 	public BastionBlockSet set;
-	private Map<String, Long> playerLastEroded = new HashMap<String, Long>();
+	private HashMap<UUID, HashMap<BastionType, Long>> cooldowns = new HashMap<UUID, HashMap<BastionType, Long>>();
+	private static Random generator = new Random();
 
 	public BastionBlockManager() {
 		set = new BastionBlockSet();
@@ -56,40 +56,62 @@ public class BastionBlockManager {
 		BastionBlock toAdd = new BastionBlock(location, reinforcement, type);
 		set.add(toAdd);
 	}
-	
-	// TODO why is origin and result passed if not used
-	public void erodeFromPlace(Block origin, Set<Block> result, String player, Set<BastionBlock> blocking) {
+
+	public void erodeFromPlace(UUID player, Set<BastionBlock> blocking) {
 		erodeFromAction(player, blocking, true);
 	}
 	
-	// TODO: Why is loc passed if not used.
-	public void erodeFromTeleport(Location loc, String player, Set<BastionBlock> blocking){
+	public void erodeFromTeleport(UUID player, Set<BastionBlock> blocking){
 		erodeFromAction(player, blocking, false);
 	}
 
 	/**
 	 * Common handler for erosion.
 	 */
-	private void erodeFromAction(String player, Set<BastionBlock> blocking, boolean fromBlock) {
-		if (onCooldown(player)) return;
+	private void erodeFromAction(UUID player, Set<BastionBlock> blocking, boolean fromBlock) {
+		HashMap<BastionType, Set<BastionBlock>> typeMap = new HashMap<BastionType, Set<BastionBlock>>();
+		for(BastionBlock block : blocking) {
+			if(!typeMap.containsKey(block.getType())) {
+				typeMap.put(block.getType(), new HashSet<BastionBlock>());
+			}
+			typeMap.get(block.getType()).add(block);
+		}
 		
-		for(BastionBlock bastion : blocking) {
-			double erosion = fromBlock ? bastion.erosionFromBlock() : bastion.erosionFromPearl();
-			bastion.erode(erosion);
+		for(BastionType type : typeMap.keySet()) {
+			if(onCooldown(player, type)) continue;
+			Set<BastionBlock> bastions = typeMap.get(type);
+			double damage = fromBlock ? type.getBlocksToErode() : type.getBlocksToErode() * type.getPearlScaleFactor();
+			if(type.getBlocksToErode() < 0) {
+				for(BastionBlock bastion : bastions) {
+					bastion.erode(damage);
+				}
+			} else {
+				List<BastionBlock> ordered = new LinkedList<BastionBlock>(blocking);
+				for(int i = 0; i < ordered.size() && i < type.getBlocksToErode(); ++i) {
+					int erode = generator.nextInt(ordered.size());
+					BastionBlock toErode = ordered.get(erode);
+					toErode.erode(damage);
+					ordered.remove(erode);
+				}
+			}
 		}
 	}
 	
-	public boolean onCooldown(String player){
-		Long last_placed = playerLastEroded.get(player);
-		if (last_placed == null){
-			playerLastEroded.put(player, System.currentTimeMillis());
+	public boolean onCooldown(UUID player, BastionType type){
+		if(!cooldowns.containsKey(player)) {
+			cooldowns.put(player, new HashMap<BastionType, Long>());
 			return false;
 		}
-		
-		if ((System.currentTimeMillis() - playerLastEroded.get(player)) < Bastion.getConfigManager().getPlacementCooldown()) {
+		if(!cooldowns.get(player).containsKey(type)) {
+			cooldowns.get(player).put(type, System.currentTimeMillis());
+			return false;
+		}
+		long last_placed = cooldowns.get(player).get(type);
+
+		if ((System.currentTimeMillis() - last_placed) < type.getPlacementCooldown()) {
 			return true;
 		} else {
-			playerLastEroded.put(player, System.currentTimeMillis());
+			cooldowns.get(player).put(type, System.currentTimeMillis());
 		}
 		
 		return false;
@@ -272,7 +294,7 @@ public class BastionBlockManager {
 		Set<BastionBlock> blocking = shouldStopBlock(null, blocks,event.getPlayer().getUniqueId());
 		
 		if (blocking.size() != 0){
-			erodeFromPlace(null, blocks,event.getPlayer().getName(),blocking);
+			erodeFromPlace(event.getPlayer().getUniqueId(),blocking);
 			
 			event.setCancelled(true);
 			event.getPlayer().sendMessage(ChatColor.RED + "Bastion removed block");
@@ -367,13 +389,46 @@ public class BastionBlockManager {
 		}
 			
 		if (blocking.size() > 0) {
-			this.erodeFromTeleport(event.getTo(), event.getPlayer().getName(), blocking);
+			this.erodeFromTeleport(event.getPlayer().getUniqueId(), blocking);
 			event.getPlayer().sendMessage(ChatColor.RED+"Ender pearl blocked by Bastion Block");
-			// TODO: Make consumption of pearls optional here.
-			event.getPlayer().getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
+			boolean consume = false;
+			for(BastionBlock bastion : blocking) {
+				if(bastion.getType().isConsumeOnBlock()) {
+					consume = true;
+				}
+			}
+			if(!consume) {
+				event.getPlayer().getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
+			}
+			event.setCancelled(true);
+			return;
+		}
+		
+		blocking = getBlockingBastions(event.getFrom(), event.getPlayer(), PermissionType.getPermission("BASTION_PEARL"));	
+		
+		i = blocking.iterator();
+		
+		while(i.hasNext()) {
+			BastionBlock bastion = i.next();
+			if(!bastion.isMature() && bastion.getType().isRequireMaturity()) {
+				i.remove();
+			}
+		}
+		
+		if(blocking.size() > 0) {
+			this.erodeFromTeleport(event.getPlayer().getUniqueId(), blocking);
+			event.getPlayer().sendMessage(ChatColor.RED+"Ender pearl blocked by Bastion Block");
+			boolean consume = false;
+			for(BastionBlock bastion : blocking) {
+				if(bastion.getType().isConsumeOnBlock()) {
+					consume = true;
+				}
+			}
+			if(!consume) {
+				event.getPlayer().getInventory().addItem(new ItemStack(Material.ENDER_PEARL));
+			}
 			event.setCancelled(true);
 			return;
 		}
 	}
-
 }

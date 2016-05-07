@@ -11,6 +11,7 @@ public class BastionType {
 	private static HashMap<String, BastionType> types = new HashMap<String, BastionType>();
 	private static int maxRadius;
 
+	private String name;
 	private MaterialData material;
 	private String lore;
 	private boolean square;
@@ -21,6 +22,7 @@ public class BastionType {
 	private double finalScaleFactor;
 	private long warmupTime;
 	private int erosionPerDay;
+	private long placementCooldown;
 	private boolean destroyOnRemove;
 	private boolean blockPearls;
 	private boolean blockMidair;
@@ -29,10 +31,11 @@ public class BastionType {
 	private boolean consumeOnBlock;
 	private int blocksToErode;
 	
-	private BastionType(MaterialData material, String lore, boolean square, boolean includeY, int effectRadius,
-			int startScaleFactor, double finalScaleFactor, long warmupTime, int erosionPerDay, 
+	private BastionType(String name, MaterialData material, String lore, boolean square, boolean includeY, int effectRadius,
+			int startScaleFactor, double finalScaleFactor, long warmupTime, int erosionPerDay, long placementCooldown,
 			boolean destroyOnRemove, boolean blockPearls, boolean blockMidair, int scaleFactor, 
 			boolean requireMaturity, boolean consumeOnBlock, int blocksToErode) {
+		this.name = name;
 		this.material = material;
 		this.lore = lore != null ? lore : "";
 		if(lore.length() > 42) {
@@ -46,6 +49,7 @@ public class BastionType {
 		this.finalScaleFactor = finalScaleFactor;
 		this.warmupTime = warmupTime;
 		this.erosionPerDay = erosionPerDay;
+		this.placementCooldown = placementCooldown;
 		this.destroyOnRemove = destroyOnRemove;
 		this.blockPearls = blockPearls;
 		this.blockMidair = blockMidair;
@@ -124,6 +128,20 @@ public class BastionType {
 		return blocksToErode;
 	}
 	
+	public long getPlacementCooldown() {
+		return placementCooldown;
+	}
+	
+	public int hashCode() {
+		return name.hashCode();
+	}
+	
+	public boolean equals(Object obj) {
+		if(!(obj instanceof BastionType)) return false;
+		BastionType other = (BastionType) obj;
+		return other.equals(name);
+	}
+
 	public static int getMaxRadius() {
 		return maxRadius;
 	}
@@ -147,6 +165,7 @@ public class BastionType {
 	}
 	
 	public static BastionType getBastionType(ConfigurationSection config) {
+		String name = config.getName();
 		Material mat = Material.getMaterial(config.getString("block.material"));
 		byte data = config.contains("block.durability") ? (byte)config.getInt("block.durability") : 0;
 		MaterialData material = new MaterialData(mat, data);
@@ -161,6 +180,7 @@ public class BastionType {
 		if(erosionPerDay != 0) {
 			erosionPerDay = 1728000 / erosionPerDay;
 		}
+		long placementCooldown = config.getLong("placementCooldown");
 		boolean destroyOnRemove = config.getBoolean("destroyOnRemove");
 		boolean blockPearls = config.getBoolean("blockPearls");
 		boolean blockMidair = config.getBoolean("blockMidair");
@@ -168,7 +188,7 @@ public class BastionType {
 		boolean requireMaturity = config.getBoolean("requireMaturity");
 		boolean consumeOnBlock = config.getBoolean("consumeOnBlock");
 		int blocksToErode = config.getInt("blocksToErode");
-		return new BastionType(material, lore, square, includeY, effectRadius, startScaleFactor, finalScaleFactor, warmupTime,
-				erosionPerDay, destroyOnRemove, blockPearls, blockMidair, scaleFactor, requireMaturity, consumeOnBlock, blocksToErode);
+		return new BastionType(name, material, lore, square, includeY, effectRadius, startScaleFactor, finalScaleFactor, warmupTime,
+				erosionPerDay, placementCooldown, destroyOnRemove, blockPearls, blockMidair, scaleFactor, requireMaturity, consumeOnBlock, blocksToErode);
 	}
 }

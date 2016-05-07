@@ -16,7 +16,6 @@ public class ConfigManager {
 	private String username;
 	private String password;
 	private int saveTimeInt;
-	private int playerCooldown;
 	static String file_name = "config.yml";
 	
 	public ConfigManager() {
@@ -41,7 +40,6 @@ public class ConfigManager {
 		} else{
 			saveTimeInt = 0;
 		}
-		playerCooldown = config.getInt("placement_cooldown");
 		BastionType.loadBastionTypes(config.getConfigurationSection("bastions"));
 	}
 	
@@ -66,9 +64,6 @@ public class ConfigManager {
 	}
 	public int getTimeBetweenSaves() {
 		return saveTimeInt;
-	}
-	public int getPlacementCooldown() {
-		return playerCooldown; 
 	}
 	
 	private int loadInt(String field) {

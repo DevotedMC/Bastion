@@ -473,7 +473,7 @@ public class EnderPearlManager {
 	}
 	
 	private void handleTeleport(BastionBlock blocking, Location loc, Player player) {
-		if (!Bastion.getBastionManager().onCooldown(player.getName())) {
+		if (!Bastion.getBastionManager().onCooldown(player.getUniqueId(), blocking.getType())) {
 			blocking.erode(blocking.erosionFromPearl());
 		}
 		
