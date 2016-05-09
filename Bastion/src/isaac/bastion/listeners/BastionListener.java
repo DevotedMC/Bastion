@@ -1,12 +1,9 @@
 package isaac.bastion.listeners;
 
-import isaac.bastion.Bastion;
-import isaac.bastion.commands.PlayersStates;
-import isaac.bastion.commands.PlayersStates.Mode;
-import isaac.bastion.manager.BastionBlockManager;
-import isaac.bastion.manager.ConfigManager;
+import java.util.HashMap;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -17,23 +14,35 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.world.StructureGrowEvent;
+import org.bukkit.material.MaterialData;
 
+import isaac.bastion.Bastion;
+import isaac.bastion.BastionType;
+import isaac.bastion.commands.PlayersStates;
+import isaac.bastion.commands.PlayersStates.Mode;
+import isaac.bastion.manager.BastionBlockManager;
 import vg.civcraft.mc.citadel.events.ReinforcementCreationEvent;
 import vg.civcraft.mc.citadel.reinforcement.PlayerReinforcement;
-import vg.civcraft.mc.namelayer.group.groups.PublicGroup;
 
 public final class BastionListener implements Listener {
 	private BastionBlockManager bastionManager;
-	private ConfigManager config;
-
+	public static HashMap<Location, BastionType> pendingBastions = new HashMap<Location, BastionType>();
 	public BastionListener() {
 		bastionManager = Bastion.getBastionManager();
-		config=Bastion.getConfigManager();
 	}
 	
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
 	public void onBlockPlace(BlockPlaceEvent event) {
 		bastionManager.handleBlockPlace(event);
+		if(!event.isCancelled()) {
+			MaterialData mat = new MaterialData(event.getBlock().getType(), event.getBlock().getData());
+			String lore = "";
+			if(event.getItemInHand() != null && event.getItemInHand().hasItemMeta() && event.getItemInHand().getItemMeta().hasLore()) {
+				lore = event.getItemInHand().getItemMeta().getLore().get(0);
+			}
+			BastionType type = BastionType.getBastionType(mat, lore);
+			if(type != null) pendingBastions.put(event.getBlock().getLocation(), type);
+		}
 	}
 
 	@EventHandler (ignoreCancelled = true)
@@ -68,17 +77,13 @@ public final class BastionListener implements Listener {
 	
 	@EventHandler
 	public void onReinforcement(ReinforcementCreationEvent event) {
-		if (event.getBlock().getType() == config.getBastionBlockMaterial() && 
+		BastionType type = pendingBastions.get(event.getBlock().getLocation());
+		if (type != null && 
 				!PlayersStates.playerInMode(event.getPlayer(), Mode.OFF) && event.getReinforcement() instanceof PlayerReinforcement) {
 			PlayersStates.touchPlayer(event.getPlayer());
 			PlayerReinforcement rein = (PlayerReinforcement) event.getReinforcement();
-			if (rein.getGroup() instanceof PublicGroup) {
-				event.setCancelled(true);
-				event.getPlayer().sendMessage(ChatColor.GREEN + "Bastions cannot be reinforced under a public group.");
-			} else {
-				bastionManager.addBastion(event.getBlock().getLocation(), rein);
-				event.getPlayer().sendMessage(ChatColor.GREEN + "Bastion block created");
-			}
+			bastionManager.addBastion(event.getBlock().getLocation(), rein, type);
+			event.getPlayer().sendMessage(ChatColor.GREEN + "Bastion block created");
 		}
 	}
 	

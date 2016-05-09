@@ -1,6 +1,10 @@
 package isaac.bastion;
 
+import java.util.LinkedList;
 import java.util.logging.Level;
+
+import org.bukkit.Bukkit;
+import org.bukkit.material.MaterialData;
 
 import isaac.bastion.commands.BastionCommandManager;
 import isaac.bastion.commands.ModeChangeCommand;
@@ -12,11 +16,11 @@ import isaac.bastion.manager.BastionBlockManager;
 import isaac.bastion.manager.ConfigManager;
 import isaac.bastion.storage.BastionBlockStorage;
 import isaac.bastion.storage.Database;
+import vg.civcraft.mc.civmodcore.ACivMod;
+import vg.civcraft.mc.namelayer.GroupManager.PlayerType;
+import vg.civcraft.mc.namelayer.permission.PermissionType;
 
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
-
-public final class Bastion extends JavaPlugin {
+public final class Bastion extends ACivMod {
 	private static BastionListener listener; ///Main listener
 	private static Bastion plugin; ///Holds the plugin
 	private static BastionBlockManager bastionManager; ///Most of the direct interaction with Bastions
@@ -24,10 +28,12 @@ public final class Bastion extends JavaPlugin {
 	
 	public void onEnable() 	{
 		//set the static variables
+		super.onEnable();
 		plugin = this;
 		config = new ConfigManager();
 		bastionManager = new BastionBlockManager();
 		listener = new BastionListener();
+		registerNameLayerPermissions();
 		
 		removeGhostBlocks();
 		
@@ -35,19 +41,21 @@ public final class Bastion extends JavaPlugin {
 			return;
 		
 		registerListeners();
-		registerCommands();
+		initCommands();
+	}
+	
+	public String getPluginName() {
+		return "Bastion";
 	}
 	
 	private void registerListeners() {
 		getServer().getPluginManager().registerEvents(listener, this);
 		getServer().getPluginManager().registerEvents(new CommandListener(), this);
-		if(config.getEnderPearlsBlocked()) { //currently everything to do with blocking pearls is part of EnderPearlListener. Needs changed
-			getServer().getPluginManager().registerEvents(new EnderPearlListener(), this);
-		}
+		getServer().getPluginManager().registerEvents(new EnderPearlListener(), this);
 	}
 
 	//Sets up the command managers
-	private void registerCommands(){
+	private void initCommands(){
 		getCommand("Bastion").setExecutor(new BastionCommandManager());
 		getCommand("bsi").setExecutor(new ModeChangeCommand(Mode.INFO));
 		getCommand("bsd").setExecutor(new ModeChangeCommand(Mode.DELETE));
@@ -80,13 +88,28 @@ public final class Bastion extends JavaPlugin {
 		Database db = BastionBlockStorage.db;
 		Bukkit.getLogger().log(Level.INFO, "Bastion is beginning ghost block check.");
 		for (BastionBlock block: bastionManager.set) {
-			if (block.getLocation().getBlock().getType() != config.getBastionBlockMaterial()) {
+			MaterialData mat = block.getType().getMaterial();
+			if (!(block.getLocation().getBlock().getType() == mat.getItemType() && block.getLocation().getBlock().getData() == mat.getData())) {
 				Bukkit.getLogger().log(Level.INFO, "Bastion removed a block at: " + block.getLocation() + ". If it is still"
 						+ " there, there is a problem...");
 				block.delete(db);
 			}
 		}
 		Bukkit.getLogger().log(Level.INFO, "Bastion has ended ghost block check.");
+	}
+	
+	public void registerNameLayerPermissions() {
+		LinkedList <PlayerType> memberAndAbove = new LinkedList<PlayerType>();
+		memberAndAbove.add(PlayerType.MEMBERS);
+		memberAndAbove.add(PlayerType.MODS);
+		memberAndAbove.add(PlayerType.ADMINS);
+		memberAndAbove.add(PlayerType.OWNER);
+		LinkedList <PlayerType> modAndAbove = new LinkedList<PlayerType>();
+		modAndAbove.add(PlayerType.MODS);
+		modAndAbove.add(PlayerType.ADMINS);
+		modAndAbove.add(PlayerType.OWNER);
+		PermissionType.registerPermission("BASTION_PEARL", memberAndAbove);
+		PermissionType.registerPermission("BASTION_PLACE", modAndAbove);
 	}
 
 }
