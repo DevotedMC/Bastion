@@ -12,12 +12,12 @@ mysql:
   maxLifetime: 7200000
   savesPerDay: 64
 bastions:
-  claimbastion:
+  claimsbastion:
     block:
-      material: BONE_BLOCK
-      durability: 0
+      material: SPONGE
+      name: Claims Bastion
       lore: 
-        - This bastion will protect your claims
+        - Claims Bastion
     squarefield: false
     effectRadius: 300
     includeY: true
@@ -45,10 +45,10 @@ bastions:
       explodeOnBlockStrength: 0
   citybastion:
     block:
-      material: NETHER_WART_BLOCK
-      durability: 0
+      material: SPONGE
+      name: City Bastion
       lore: 
-        - This bastion will protect your plot
+        - City Bastion
     squarefield: true
     effectRadius: 50
     includeY: true
@@ -77,9 +77,9 @@ bastions:
   bastion:
     block:
       material: SPONGE
-      durability: 0
+      name: Vault Bastion
       lore: 
-        - this one is hellaz
+        - Vault Bastion
     squarefield: false
     effectRadius: 10
     includeY: true
