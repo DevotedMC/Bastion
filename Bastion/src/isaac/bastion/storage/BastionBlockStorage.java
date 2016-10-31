@@ -221,7 +221,11 @@ public class BastionBlockStorage {
 	 * @return A set of QTBoxes (bastions) that overlap with the location
 	 */
 	public Set<QTBox> forLocation(Location loc) {
-		return blocks.get(loc.getWorld()).find(loc.getBlockX(), loc.getBlockZ());
+		if(blocks.containsKey(loc.getWorld())) {
+			return blocks.get(loc.getWorld()).find(loc.getBlockX(), loc.getBlockZ());
+		} else {
+			return new TreeSet<QTBox>();
+		}
 	}
 	
 	/**
