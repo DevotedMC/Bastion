@@ -67,7 +67,7 @@ public class BastionBlockStorage {
 		db.registerMigration(0, false, 
 				"create table if not exists `bastion_blocks`("
 				+ "bastion_id int(10) unsigned NOT NULL AUTO_INCREMENT,"
-				+ "bastion_type varchar(40) NOT NULL DEFAULT '" + BastionType.getDefaultType() + "',"
+				+ "bastion_type varchar(40) DEFAULT '" + BastionType.getDefaultType() + "',"
 				+ "loc_x int(10),"
 				+ "loc_y int(10),"
 				+ "loc_z int(10),"
@@ -130,12 +130,8 @@ public class BastionBlockStorage {
 				PreparedStatement ps = conn.prepareStatement(deleteBastion)) {
 			ps.setInt(1, bastion.getId());
 			ps.executeUpdate();
-			try {
-				bastions.remove(bastion);
-				blocks.get(bastion.getLocation().getWorld()).remove(bastion);
-			} catch (NullPointerException npe) {
-				log.log(Level.WARNING, "Bastion wasn't in cache, or failed to remove from cache: " + bastion.getLocation().toString(), npe);
-			}
+			bastions.remove(bastion);
+			blocks.get(bastion.getLocation().getWorld()).remove(bastion);
 		} catch (SQLException e) {
 			log.log(Level.WARNING, "Failed to delete a bastion at " + bastion.getLocation().toString(), e);
 		}
@@ -221,11 +217,7 @@ public class BastionBlockStorage {
 	 * @return A set of QTBoxes (bastions) that overlap with the location
 	 */
 	public Set<QTBox> forLocation(Location loc) {
-		if(blocks.containsKey(loc.getWorld())) {
-			return blocks.get(loc.getWorld()).find(loc.getBlockX(), loc.getBlockZ());
-		} else {
-			return new TreeSet<QTBox>();
-		}
+		return blocks.get(loc.getWorld()).find(loc.getBlockX(), loc.getBlockZ());
 	}
 	
 	/**
@@ -356,6 +348,7 @@ public class BastionBlockStorage {
 				log.log(Level.SEVERE, "Error loading bastions from database, shutting down", e);
 				Bukkit.getServer().getPluginManager().disablePlugin(Bastion.getPlugin());
 			}
+			blocks.put(world, bastionsForWorld);
 		}
 	}
 	
