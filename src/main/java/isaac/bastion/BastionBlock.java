@@ -64,7 +64,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		if(type.getWarmupTime() == 0) {
 			return scaleStart;
 		} else if(time < type.getWarmupTime()) {
-			return (((scaleEnd - scaleStart) / (float) type.getWarmupTime()) * time - scaleStart);
+			return (((scaleEnd - scaleStart) / (float) type.getWarmupTime()) * time + scaleStart);
 		} else {
 			return scaleEnd;
 		}
