@@ -1,6 +1,7 @@
 package isaac.bastion.listeners;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import org.bukkit.Location;
@@ -44,24 +45,26 @@ public class BastionBreakListener implements Listener {
 		storage.deleteDeadBastion(loc);
 	}
 	
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
 		Block block = Utility.getRealBlock(event.getBlock());
 		if(storage.getTypeAtLocation(block.getLocation()) != null) {
-			block.getDrops().clear();
+			event.setCancelled(true);
+			block.setType(Material.AIR);
 			dropBastionItem(block.getLocation());
 		}
 	}
 	
+
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onEntityExplode(EntityExplodeEvent event) {
 		Iterator<Block> iterator = event.blockList().iterator();
-		ArrayList<Block> blocks = new ArrayList<Block>();
+		HashSet<Block> blocks = new HashSet<Block>();
 		while(iterator.hasNext()) {
 			Block block = Utility.getRealBlock(iterator.next());
 			if(storage.getTypeAtLocation(block.getLocation()) != null) {
 				if(blocks.contains(block)) {
-					block.getDrops().clear();
+					//block.getDrops().clear(); // Why do it a second time? If in list, drops are cleared.
 					continue;
 				}
 				blocks.add(block);
