@@ -59,7 +59,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		double scaleStart = type.getStartScaleFactor();
 		double scaleEnd = type.getFinalScaleFactor();
 		
-		long time = System.currentTimeMillis() - placed;
+		long time = placed - System.currentTimeMillis();
 		
 		if(type.getWarmupTime() == 0) {
 			return scaleStart;
