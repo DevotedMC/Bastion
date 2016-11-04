@@ -190,7 +190,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 	 * @return true if the Bastion's strength is at zero and it should be removed
 	 */
 	public boolean shouldCull() {
-		return health - balance <= 0;
+		return (health - balance) <= 0;
 	}
 	
 	/**
@@ -229,6 +229,8 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 
 		health -= wholeToRemove;
 		balance = fractionToRemove;
+		
+		if (health <= 0.0) health = 0.0;
 
 		reinforcement.setDurability(health);
 
