@@ -230,7 +230,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		health -= wholeToRemove;
 		balance = fractionToRemove;
 		
-		if (health <= 0.0) health = 0.0;
+		if (health <= 0) health = 0;
 
 		reinforcement.setDurability(health);
 
