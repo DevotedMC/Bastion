@@ -92,13 +92,14 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 	 * @return true if in field
 	 */
 	public boolean inField(Location loc) {
-		return !(yLevelCheck(loc)) ||
+		return !(yLevelCheck(loc) || // don't add parens if you don't know why it wasn't there.
 				(type.isSquare() &&
 					(Math.abs(loc.getBlockX() - location.getBlockX()) > type.getEffectRadius() ||
-					Math.abs(loc.getBlockZ() - location.getBlockZ()) > type.getEffectRadius())) ||
+					Math.abs(loc.getBlockZ() - location.getBlockZ()) > type.getEffectRadius() ) ) ||
 				(!type.isSquare() &&
-				((loc.getBlockX() - location.getX()) * (float)(loc.getBlockX() - location.getX()) + 
-						(loc.getBlockZ() - location.getZ()) * (float)(loc.getBlockZ() - location.getZ()) >= type.getEffectRadius()));
+					((loc.getBlockX() - location.getX()) * (float)(loc.getBlockX() - location.getX()) + 
+					(loc.getBlockZ() - location.getZ()) * (float)(loc.getBlockZ() - location.getZ()) >= type.getEffectRadius() ) )
+				);
 	}
 	
 	public boolean yLevelCheck(Location loc) {
