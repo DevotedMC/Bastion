@@ -127,13 +127,13 @@ public final class BastionDamageListener implements Listener {
 		}
 	}
 	
-	@EventHandler (ignoreCancelled = true)
+	/*@EventHandler (ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
 		BastionBlock bastion = Bastion.getBastionStorage().getBastionBlock(event.getBlock().getLocation());
 		if (bastion != null) {
 			bastion.destroy();
 		}
-	}
+	}*/
 	
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled=true)
 	public void handleEnderPearlLanded(PlayerTeleportEvent event){

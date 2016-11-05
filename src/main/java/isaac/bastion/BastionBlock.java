@@ -48,6 +48,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		} else{
 			this.health = 0;
 			destroy();
+			Bastion.getPlugin().severe("Reinforcement removed during BastionBlock instantiation, removing");
 		}
 
 	}
@@ -205,6 +206,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 				reinf.setDurability(Math.min(health + 1, maxHealth));
 			} else {
 				destroy();
+				Bastion.getPlugin().severe("Reinforcement removed without removing bastion, fixed");
 			}
 		}
 	}
@@ -236,6 +238,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 
 		if (shouldCull()) {
 			destroy();
+			Bastion.getPlugin().severe("Reinforcement destroyed, removing bastion");
 		} else {
 			Bastion.getBastionStorage().updated(this);
 		}

@@ -473,7 +473,25 @@ public class BastionType {
 		StringBuilder sb = new StringBuilder(this.name);
 		sb.append(": ").append(material)
 			.append(" name:").append(itemName)
-			.append(" lore[").append(lore != null ? lore.size() : 0).append("]: ").append(lore);
+			.append(" lore[").append(lore != null ? lore.size() : 0).append("]: ").append(lore)
+			.append(" scale[").append(this.startScaleFactor).append("->").append(this.finalScaleFactor)
+			.append(" ").append(this.effectRadius).append(this.square ? "cb": "r")
+			.append(" wm").append(this.warmupTime).append(" cd").append(this.placementCooldown)
+			.append(" ed").append(this.erosionTime).append(" rd").append(this.regenTime)
+			.append(" iY").append(this.includeY).append(" bte").append(this.blocksToErode)
+			.append(" pearls[").append(this.blockPearls);
+		if (this.blockPearls) {
+			sb.append(": mid").append(this.blockMidair).append(" rM").append(this.pearlRequireMature)
+				.append(" sc").append(this.pearlScale).append(" cob").append(this.consumeOnBlock)
+				.append(" dfB").append(this.damageFirstBastion);
+		}
+		sb.append("] elytra[").append(this.blockElytra);
+		if (this.blockElytra) {
+			sb.append(": rM").append(this.elytraRequireMature).append(" sc").append(this.elytraScale)
+				.append(" dob").append(this.damageElytra).append(" Dob").append(this.destroyElytra)
+				.append(" eob").append(this.explodeOnBlock).append(" eos").append(this.explodeOnBlockStrength);
+		}
+		sb.append("]");
 		return sb.toString();
 	}
 }

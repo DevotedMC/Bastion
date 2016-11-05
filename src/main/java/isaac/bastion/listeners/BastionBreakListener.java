@@ -22,6 +22,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import isaac.bastion.Bastion;
+import isaac.bastion.BastionBlock;
 import isaac.bastion.BastionType;
 import isaac.bastion.storage.BastionBlockStorage;
 import vg.civcraft.mc.citadel.Utility;
@@ -36,6 +37,10 @@ public class BastionBreakListener implements Listener {
 	
 	private void dropBastionItem(Location loc) {
 		BastionType type = storage.getTypeAtLocation(loc);
+		dropBastionItem(loc, type);
+	}
+	
+	private void dropBastionItem(Location loc, BastionType type) {
 		ItemStack item = type.getItemRepresentation();
 		new BukkitRunnable() {
 			@Override
@@ -43,54 +48,70 @@ public class BastionBreakListener implements Listener {
 				loc.getWorld().dropItem(loc.add(0.5, 0.5, 0.5), item).setVelocity(new Vector(0, 0.05, 0));;
 			}
 		}.runTaskLater(Bastion.getPlugin(), 1);
-		storage.deleteDeadBastion(loc);
+		storage.deleteDeadBastion(loc); // just in case.
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
+		// we will only reach this is allowed by Citadel -- e.g. is not cancelled.
 		Block block = Utility.getRealBlock(event.getBlock());
-		if(storage.getTypeAtLocation(block.getLocation()) != null) {
+		BastionType type = storage.getTypeAtLocation(block.getLocation());
+		if(type != null) {
+			BastionBlock bastion = storage.getBastionBlock(block.getLocation());
+			if (bastion != null) {
+				bastion.destroy();
+			}
 			event.setCancelled(true);
 			block.setType(Material.AIR);
-			dropBastionItem(block.getLocation());
+			dropBastionItem(block.getLocation(), type);
 		}
 	}
 	
-
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onEntityExplode(EntityExplodeEvent event) {
 		Iterator<Block> iterator = event.blockList().iterator();
 		HashSet<Block> blocks = new HashSet<Block>();
 		while(iterator.hasNext()) {
 			Block block = Utility.getRealBlock(iterator.next());
-			if(storage.getTypeAtLocation(block.getLocation()) != null) {
+			BastionType type = storage.getTypeAtLocation(block.getLocation());
+			if( type != null) {
 				if(blocks.contains(block)) {
-					//block.getDrops().clear(); // Why do it a second time? If in list, drops are cleared.
 					continue;
 				}
 				blocks.add(block);
-				dropBastionItem(block.getLocation());
-				block.getDrops().clear();
+				block.setType(Material.AIR);
+				dropBastionItem(block.getLocation(), type);
+				iterator.remove(); // don't explode it, we've got it covered now.
 			}
 		}
 	}
 	
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onEntityDoorBreak(EntityBreakDoorEvent event) {
+		// we will only reach this if citadel allows
 		Block block = Utility.getRealBlock(event.getBlock());
-		if(storage.getTypeAtLocation(block.getLocation()) != null) {
-			block.getDrops().clear();
-			dropBastionItem(block.getLocation());
+		BastionType type = storage.getTypeAtLocation(block.getLocation());
+		if(type != null) {
+			BastionBlock bastion = storage.getBastionBlock(block.getLocation());
+			if (bastion != null) {
+				bastion.destroy();
+			}
+			event.setCancelled(true);
+			block.setType(Material.AIR);
+			event.getBlock().setType(Material.AIR);
+			dropBastionItem(block.getLocation(), type);
 		}
 	}
-	
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPistonExtend(BlockPistonExtendEvent event) {
+		// we will only reach this if citadel allows
 		for(Block block : event.getBlocks()) {
-			if(storage.getTypeAtLocation(block.getLocation()) != null) {
+			BastionType type = storage.getTypeAtLocation(block.getLocation());
+			if(type != null) {
 				if(block.getPistonMoveReaction() == PistonMoveReaction.BREAK) {
-					dropBastionItem(block.getLocation());
-					block.getDrops().clear();
+					dropBastionItem(block.getLocation(), type);
+					block.setType(Material.AIR);
 				} else if(block.getPistonMoveReaction() == PistonMoveReaction.MOVE) {
 					Block toBlock = block.getRelative(event.getDirection());
 					storage.moveDeadBastion(block.getLocation(), toBlock.getLocation());
@@ -99,14 +120,15 @@ public class BastionBreakListener implements Listener {
 		}
 	}
 	
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPistonRetract(BlockPistonRetractEvent event) {
 		if(!event.isSticky()) return;
 		for(Block block : event.getBlocks()) {
-			if(storage.getTypeAtLocation(block.getLocation()) != null) {
+			BastionType type = storage.getTypeAtLocation(block.getLocation());
+			if(type != null) {
 				if(block.getPistonMoveReaction() == PistonMoveReaction.BREAK) {
-					dropBastionItem(block.getLocation());
-					block.getDrops().clear();
+					dropBastionItem(block.getLocation(), type);
+					block.setType(Material.AIR);
 				} else if(block.getPistonMoveReaction() == PistonMoveReaction.MOVE) {
 					Block toBlock = block.getRelative(event.getDirection());
 					storage.moveDeadBastion(block.getLocation(), toBlock.getLocation());
@@ -115,12 +137,14 @@ public class BastionBreakListener implements Listener {
 		}
 	}
 	
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBurn(BlockBurnEvent event) {
 		Block block = Utility.getRealBlock(event.getBlock());
-		if(storage.getTypeAtLocation(block.getLocation()) != null) {
-			block.getDrops().clear();
-			dropBastionItem(block.getLocation());
+		BastionType type = storage.getTypeAtLocation(block.getLocation());
+		if(type != null) {
+			block.setType(Material.AIR);
+			dropBastionItem(block.getLocation(), type);
+			event.setCancelled(true);
 		}
 	}
 }
