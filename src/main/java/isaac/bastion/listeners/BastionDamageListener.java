@@ -15,7 +15,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
@@ -146,7 +145,7 @@ public final class BastionDamageListener implements Listener {
 		
 		while(i.hasNext()) {
 			BastionBlock bastion = i.next();
-			if(bastion.getType().isBlockMidair() || (bastion.getType().isRequireMaturity() && !bastion.isMature())) {
+			if(bastion.getType().isBlockPearls() || bastion.getType().isBlockMidair() || (bastion.getType().isRequireMaturity() && !bastion.isMature())) {
 				i.remove();
 			}
 		}

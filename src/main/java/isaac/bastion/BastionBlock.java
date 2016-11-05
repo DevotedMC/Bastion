@@ -98,7 +98,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 					Math.abs(loc.getBlockZ() - location.getBlockZ()) > type.getEffectRadius() ) ) ||
 				(!type.isSquare() &&
 					((loc.getBlockX() - location.getX()) * (float)(loc.getBlockX() - location.getX()) + 
-					(loc.getBlockZ() - location.getZ()) * (float)(loc.getBlockZ() - location.getZ()) >= type.getEffectRadius() ) )
+					(loc.getBlockZ() - location.getZ()) * (float)(loc.getBlockZ() - location.getZ()) >= type.getRadiusSquared() ) )
 				);
 	}
 	
