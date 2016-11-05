@@ -3,6 +3,7 @@ package isaac.bastion.listeners;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.logging.Level;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -35,11 +36,6 @@ public class BastionBreakListener implements Listener {
 		this.storage = storage;
 	}
 	
-	private void dropBastionItem(Location loc) {
-		BastionType type = storage.getTypeAtLocation(loc);
-		dropBastionItem(loc, type);
-	}
-	
 	private void dropBastionItem(Location loc, BastionType type) {
 		ItemStack item = type.getItemRepresentation();
 		new BukkitRunnable() {
@@ -57,6 +53,7 @@ public class BastionBreakListener implements Listener {
 		Block block = Utility.getRealBlock(event.getBlock());
 		BastionType type = storage.getTypeAtLocation(block.getLocation());
 		if(type != null) {
+			Bastion.getPlugin().getLogger().log(Level.INFO, "BastionType broken {0}", type.toString());
 			BastionBlock bastion = storage.getBastionBlock(block.getLocation());
 			if (bastion != null) {
 				bastion.destroy();
