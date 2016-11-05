@@ -61,6 +61,14 @@ public class BastionBreakListener implements Listener {
 			event.setCancelled(true);
 			block.setType(Material.AIR);
 			dropBastionItem(block.getLocation(), type);
+		} else {
+			type = storage.getAndRemovePendingBastion(block.getLocation());
+			if (type != null) {
+				Bastion.getPlugin().getLogger().log(Level.INFO, "Pended BastionType broken {0}", type.toString());
+				event.setCancelled(true);
+				block.setType(Material.AIR);
+				dropBastionItem(block.getLocation(), type);				
+			}
 		}
 	}
 	
