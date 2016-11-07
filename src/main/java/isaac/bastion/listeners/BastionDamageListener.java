@@ -52,7 +52,6 @@ public final class BastionDamageListener implements Listener {
 			Set<BastionBlock> blocking = clearNonBlocking(preblocking);
 
 			if (blocking.size() == 0) {
-				event.getPlayer().sendMessage(ChatColor.BLUE + "Bastion ignored block");
 				return;
 			}
 			

@@ -271,11 +271,15 @@ public class BastionBlockManager {
 				sb.append(ChatColor.YELLOW).append("No Bastion Block");
 			}
 		} else {
-			sb.append(ChatColor.RED).append("A Bastion Block prevents you building");
+			if (bastion.getType().isOnlyDirectDestruction()) {
+				sb.append(ChatColor.BLUE).append("Bastion ignores blocks");
+			} else {
+				sb.append(ChatColor.RED).append("A Bastion Block prevents you building");
+			}
 		}
 
 		if (dev && bastion != null) {
-			sb.append(ChatColor.BLACK).append("\n").append(bastion.toString());
+			sb.append(ChatColor.GRAY).append("\n").append(bastion.toString());
 		}
 
 		return sb.toString();

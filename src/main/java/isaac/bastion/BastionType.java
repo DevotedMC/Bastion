@@ -355,7 +355,7 @@ public class BastionType {
 			im.setDisplayName(itemName);
 		}
 		is.setItemMeta(im);
-		Bastion.getPlugin().getLogger().log(Level.INFO, "Bastion {0} represented as {1}", new Object[] {name, is.toString()});
+		//Bastion.getPlugin().getLogger().log(Level.INFO, "Bastion {0} represented as {1}", new Object[] {name, is.toString()});
 		return is;
 	}
 
@@ -401,14 +401,14 @@ public class BastionType {
 	public static BastionType getBastionType(MaterialData mat, String itemName, List<String> lore) {
 		if (lore != null && lore.size() == 0) lore = null;
 		for (BastionType type : types.values()) {
-			StringBuilder sb = new StringBuilder();
+			//StringBuilder sb = new StringBuilder();
 			boolean test = type.material.equals(mat);
-			sb.append(type.getName()).append(" is").append(test ? " " : "n't ").append(mat);
+			//sb.append(type.getName()).append(" is").append(test ? " " : "n't ").append(mat);
 			test &= ((itemName == null && type.itemName == null) || (type.itemName != null && type.itemName.equals(itemName)));
-			sb.append(" name is ").append(itemName).append(test ? " = " : " not ").append(type.itemName);
+			//sb.append(" name is ").append(itemName).append(test ? " = " : " not ").append(type.itemName);
 			test &= ((lore == null && (type.lore == null || type.lore.size() == 0)) || (type.lore != null && type.lore.equals(lore)));
-			sb.append(" lore is ").append(lore).append(test ? " = " : " not ").append(type.lore);
-			Bastion.getPlugin().getLogger().log(Level.INFO, "BastionType check {0}", sb);
+			//sb.append(" lore is ").append(lore).append(test ? " = " : " not ").append(type.lore);
+			//Bastion.getPlugin().getLogger().log(Level.INFO, "BastionType check {0}", sb);
 			if (test) return type;
 		}
 		return null;
