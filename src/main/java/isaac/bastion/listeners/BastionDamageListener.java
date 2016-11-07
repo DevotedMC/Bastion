@@ -46,9 +46,16 @@ public final class BastionDamageListener implements Listener {
 	public void onBlockPlace(BlockPlaceEvent event) {
 		Set<Block> blocks = new CopyOnWriteArraySet<Block>();
 		blocks.add(event.getBlock());
-		Set<BastionBlock> blocking = manager.shouldStopBlock(null, blocks,event.getPlayer().getUniqueId());
+		Set<BastionBlock> preblocking = manager.shouldStopBlock(null, blocks,event.getPlayer().getUniqueId());
 		
-		if (blocking.size() != 0){
+		if (preblocking.size() != 0){
+			Set<BastionBlock> blocking = clearNonBlocking(preblocking);
+
+			if (blocking.size() == 0) {
+				event.getPlayer().sendMessage(ChatColor.BLUE + "Bastion ignored block");
+				return;
+			}
+			
 			manager.erodeFromPlace(event.getPlayer(),blocking);
 			
 			event.setCancelled(true);
@@ -80,7 +87,7 @@ public final class BastionDamageListener implements Listener {
 			playerName = player.getUniqueId();
 		}
 		
-		Set<BastionBlock> blocking = manager.shouldStopBlock(event.getLocation().getBlock(), blocks, playerName);
+		Set<BastionBlock> blocking = clearNonBlocking(manager.shouldStopBlock(event.getLocation().getBlock(), blocks, playerName));
 		
 		if (blocking.size() != 0) {
 			event.setCancelled(true);
@@ -93,7 +100,7 @@ public final class BastionDamageListener implements Listener {
 		Set<Block> involved = new HashSet<Block>(event.getBlocks());
 		involved.add(pistion.getRelative(event.getDirection()));
 		
-		Set<BastionBlock> blocking = manager.shouldStopBlock(pistion, involved, null);
+		Set<BastionBlock> blocking = clearNonBlocking(manager.shouldStopBlock(pistion, involved, null));
 		
 		if (blocking.size() != 0) {
 			event.setCancelled(true);
@@ -119,7 +126,7 @@ public final class BastionDamageListener implements Listener {
 		Set<Block> blocks = new HashSet<Block>();
 		blocks.add(event.getBlock().getRelative( ((Dispenser) event.getBlock().getState().getData()).getFacing()));
 		
-		Set<BastionBlock> blocking = manager.shouldStopBlock(event.getBlock(),blocks, null);
+		Set<BastionBlock> blocking = clearNonBlocking(manager.shouldStopBlock(event.getBlock(),blocks, null));
 		
 		if(blocking.size() != 0) {
 			event.setCancelled(true);
@@ -172,7 +179,7 @@ public final class BastionDamageListener implements Listener {
 		
 		while(i.hasNext()) {
 			BastionBlock bastion = i.next();
-			if(!bastion.getType().isBlockPearls() || (bastion.getType().isRequireMaturity() && !bastion.isMature())) {
+			if(bastion.getType().isOnlyDirectDestruction() || !bastion.getType().isBlockPearls() || (bastion.getType().isRequireMaturity() && !bastion.isMature())) {
 				i.remove();
 			}
 		}
@@ -201,4 +208,15 @@ public final class BastionDamageListener implements Listener {
 			pearlMan.handlePearlLaunched(pearl);
 		}
 	}
+	
+	private Set<BastionBlock> clearNonBlocking(Set<BastionBlock> preblocking) {
+		Set<BastionBlock> blocking = new HashSet<BastionBlock>();
+		for (BastionBlock bastion : preblocking) {
+			if (!bastion.getType().isOnlyDirectDestruction()) {
+				blocking.add(bastion);
+			}
+		}
+		return blocking;
+	}
 }
+

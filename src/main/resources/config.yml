@@ -31,6 +31,7 @@ bastions:
     blocksToErode: 1
     placementCooldown: 2000
     destroyOnRemove: true
+    onlyDirectDestroy: false
     pearls:
       block: false
       blockMidair: fakse
@@ -64,6 +65,7 @@ bastions:
     blocksToErode: 1
     placementCooldown: 2000
     destroyOnRemove: false
+    onlyDirectDestroy: true
     pearls:
       block: false
       blockMidair: false
@@ -97,6 +99,7 @@ bastions:
     blocksToErode: 1
     placementCooldown: 2000
     destroyOnRemove: true
+    onlyDirectDestroy: false
     pearls:
       block: true
       blockMidair: true
