@@ -38,7 +38,7 @@ bastions:
     onlyDirectDestroy: false
     pearls:
       block: false
-      blockMidair: fakse
+      blockMidair: false
       scaleFactor: 1
       requireMaturity: true
       consumeOnBlock: false
