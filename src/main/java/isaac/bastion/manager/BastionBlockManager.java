@@ -109,6 +109,7 @@ public class BastionBlockManager {
 						continue;
 					}
 					bastion.erode(damage);
+					player.sendMessage(String.format("%sAction damaged Bastion block", ChatColor.DARK_RED));
 				}
 			}
 
@@ -122,6 +123,7 @@ public class BastionBlockManager {
 						continue;
 					}
 					bastion.erode(damage);
+					player.sendMessage(String.format("%sAction damaged Bastion block", ChatColor.DARK_RED));
 				}
 			} else if (type.getBlocksToErode() > 0) { // erode some
 				List<BastionBlock> ordered = new LinkedList<>(bastions);
@@ -136,6 +138,7 @@ public class BastionBlockManager {
 						continue;
 					}
 					bastion.erode(damage);
+					player.sendMessage(String.format("%sAction damaged Bastion block", ChatColor.DARK_RED));
 					ordered.remove(erode);
 				}
 			}
