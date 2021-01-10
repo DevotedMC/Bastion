@@ -5,10 +5,10 @@ A minecraft mod designed for use with [/r/civcraft](https://old.reddit.com/r/Civ
 For a more extensive and updated list of features see https://github.com/CivClassic/Bastion/wiki
 
 Features:
- * Destroys blocks placed in a cylinder or cuboid of configurable radius starting at or just above a reinforced target block (Bastion block) at the price of a configurable amount of reinforcement if the placer is not a member of the reinforcing group
- * Prevents dispensers dispensing water, lava, and flint and steel if the owner of there reinforcement is not allowed to place blocks
+ * Destroys blocks placed in a cylinder of configurable radius starting just above a reinforced target block (Bastion block) at the price of a configurable amount of reinforcement if the placer is not a member of the reinforcing group
+ * Prevents dispensers dispensing water, lava, and flint and steel if the owner of their reinforcement is not allowed to place blocks
  * Prevents pistons pushing into the Bastion field (Area where block placement is restricted) if the owner of the reinforcement would not be allowed to place there.
- * Prevents teleportation through the the Bastion field by non-members (Note this is highly experimental and may be better disabled)
+ * Prevents teleportation through the Bastion field by non-members (Note this is highly experimental and may be better disabled)
  * Multiple Bastion types with unique properties
 
 Modes:
@@ -16,13 +16,13 @@ Modes:
   * When clicking a block inside a Bastion field tells you if you have access
   * When clicking a bastion block gives some basic information on it
 * DELETE
-  * When a Bastion block is clicked remove the bastion field while maintaing the reinforcement
+ * When a Bastion block is clicked remove the bastion field while maintaining the reinforcement
 * NORMAl
-  * Defualt clicking on blocks does nothing
+ * Default clicking on blocks does nothing
 * BASTION
   * Any target block reinforced will become a Bastion Block
 * CREATE
-  * Any reinforced target block clicked will becomea  Bastion if you have access
+ * Any reinforced target block clicked will become a Bastion if you have access
 
 
 Commands:
@@ -59,7 +59,7 @@ Permissions:
    * Gives access to /bsm to mature a bastion instantly
    * sets Bastion.bypass to true
  * Bastion.bypass
-   * Bastions should not effect you (not well tested)
+  * Bastions should not affect you (not well tested)
  * Bastion.dev
    * /bsi gives extra info 
 

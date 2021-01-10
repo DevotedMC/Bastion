@@ -17,10 +17,7 @@ import vg.civcraft.mc.citadel.ReinforcementLogic;
 import vg.civcraft.mc.citadel.model.Reinforcement;
 import vg.civcraft.mc.civmodcore.locations.QTBox;
 import vg.civcraft.mc.civmodcore.util.TextUtil;
-import vg.civcraft.mc.namelayer.GroupManager;
-import vg.civcraft.mc.namelayer.NameAPI;
-import vg.civcraft.mc.namelayer.group.Group;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
+import vg.civcraft.mc.namelayer.mc.GroupAPI;
 
 public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 	private static final DecimalFormat formatter = new DecimalFormat("#.##");
@@ -135,7 +132,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		Reinforcement reinforcement = getReinforcement();
 
 		if(reinforcement!=null){
-			return NameAPI.getGroupManager().hasAccess(reinforcement.getGroup(), player.getUniqueId(), PermissionType.getPermission(Permissions.BASTION_PEARL));
+			return GroupAPI.hasPermission(player, reinforcement.getGroup(), PermissionType.getPermission(Permissions.BASTION_PEARL));
 		}
 		return true;
 	}

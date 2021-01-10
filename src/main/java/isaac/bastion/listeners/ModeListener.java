@@ -29,8 +29,6 @@ import vg.civcraft.mc.civmodcore.scoreboard.bottom.BottomLine;
 import vg.civcraft.mc.civmodcore.scoreboard.bottom.BottomLineAPI;
 import vg.civcraft.mc.civmodcore.scoreboard.side.CivScoreBoard;
 import vg.civcraft.mc.civmodcore.scoreboard.side.ScoreBoardAPI;
-import vg.civcraft.mc.namelayer.NameAPI;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
 
 public class ModeListener implements Listener {
 

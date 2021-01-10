@@ -37,8 +37,7 @@ import isaac.bastion.Permissions;
 import isaac.bastion.manager.BastionBlockManager;
 import isaac.bastion.manager.EnderPearlManager;
 import vg.civcraft.mc.civmodcore.api.ItemNames;
-import vg.civcraft.mc.namelayer.group.Group;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
+import vg.civcraft.mc.namelayer.core.Group;
 
 public final class BastionDamageListener implements Listener {
 	private BastionBlockManager blockManager;

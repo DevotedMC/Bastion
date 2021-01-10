@@ -22,8 +22,8 @@ import isaac.bastion.storage.Database;
 import isaac.bastion.utils.BastionSettingManager;
 import vg.civcraft.mc.civmodcore.ACivMod;
 import vg.civcraft.mc.civmodcore.dao.ManagedDatasource;
-import vg.civcraft.mc.namelayer.GroupManager.PlayerType;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
+import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
+import vg.civcraft.mc.namelayer.mc.GroupAPI;
 
 public final class Bastion extends ACivMod {
 	private static Bastion plugin;
@@ -141,25 +141,10 @@ public final class Bastion extends ACivMod {
 	public static CommonSettings getCommonSettings() { return commonSettings; }
 
 	private void registerNameLayerPermissions() {
-		LinkedList <PlayerType> memberAndAbove = new LinkedList<>();
-		memberAndAbove.add(PlayerType.MEMBERS);
-		memberAndAbove.add(PlayerType.MODS);
-		memberAndAbove.add(PlayerType.ADMINS);
-		memberAndAbove.add(PlayerType.OWNER);
-
-		LinkedList <PlayerType> modAndAbove = new LinkedList<>();
-		modAndAbove.add(PlayerType.MODS);
-		modAndAbove.add(PlayerType.ADMINS);
-		modAndAbove.add(PlayerType.OWNER);
-
-		LinkedList <PlayerType> adminAndAbove = new LinkedList<>();
-		adminAndAbove.add(PlayerType.ADMINS);
-		adminAndAbove.add(PlayerType.OWNER);
-
-		PermissionType.registerPermission(Permissions.BASTION_PEARL, memberAndAbove, "Allows a player to throw a pearl into a bastion field.");
-		PermissionType.registerPermission(Permissions.BASTION_PLACE, modAndAbove, "Allows a player to place blocks within a bastion field.", false);
-		PermissionType.registerPermission(Permissions.BASTION_LIST, modAndAbove, "Allows a player to see all bastions under this group.");
-		PermissionType.registerPermission(Permissions.BASTION_MANAGE_GROUPS, adminAndAbove, "Allows linking bastion groups.");
+		GroupAPI.registerPermission(Permissions.BASTION_PEARL, DefaultPermissionLevel.MEMBER, "Allows a player to throw a pearl into a bastion field.");
+		GroupAPI.registerPermission(Permissions.BASTION_PLACE, DefaultPermissionLevel.MOD, "Allows a player to place blocks within a bastion field.");
+		GroupAPI.registerPermission(Permissions.BASTION_LIST, DefaultPermissionLevel.MOD, "Allows a player to see all bastions under this group.");
+		GroupAPI.registerPermission(Permissions.BASTION_MANAGE_GROUPS, DefaultPermissionLevel.ADMIN, "Allows linking bastion groups.");
 	}
 
 }

@@ -12,7 +12,6 @@ import isaac.bastion.BastionType;
 import isaac.bastion.Permissions;
 import isaac.bastion.manager.BastionBlockManager;
 import vg.civcraft.mc.citadel.events.ReinforcementCreationEvent;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
 
 public class CitadelListener implements Listener {
 	

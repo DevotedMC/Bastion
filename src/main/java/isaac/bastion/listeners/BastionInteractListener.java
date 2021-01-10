@@ -34,8 +34,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import vg.civcraft.mc.citadel.Citadel;
 import vg.civcraft.mc.citadel.events.ReinforcementCreationEvent;
 import vg.civcraft.mc.citadel.model.Reinforcement;
-import vg.civcraft.mc.namelayer.NameAPI;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
 
 public class BastionInteractListener implements Listener {
 
