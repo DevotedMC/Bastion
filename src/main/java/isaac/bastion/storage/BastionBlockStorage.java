@@ -62,13 +62,13 @@ public class BastionBlockStorage {
 		pendingBastions = new HashMap<>();
 		this.db = db;
 		this.log = log;
-		long saveDelay = 86400000 / Bastion.getPlugin().getConfig().getLong("mysql.savesPerDay", 64);
+		long saveDelay = 86400000 / Bastion.getInstance().getConfig().getLong("mysql.savesPerDay", 64);
 		taskId = new BukkitRunnable(){
 			@Override
 			public void run(){
 				update();
 			}
-		}.runTaskTimer(Bastion.getPlugin(),saveDelay,saveDelay).getTaskId();
+		}.runTaskTimer(Bastion.getInstance(),saveDelay,saveDelay).getTaskId();
 	}
 	
 	/**
@@ -349,7 +349,7 @@ public class BastionBlockStorage {
 				}
 			} catch (SQLException e) {
 				log.log(Level.SEVERE, ChatColor.RED + "===== Error loading bastions from database, shutting down =====", e);
-				Bukkit.getServer().getPluginManager().disablePlugin(Bastion.getPlugin());
+				Bukkit.getServer().getPluginManager().disablePlugin(Bastion.getInstance());
 			}
 		}
 	}

@@ -50,7 +50,7 @@ public class BastionBreakListener implements Listener {
 					player.spigot().sendMessage(chatMessage);
 				}
 			}
-		}.runTaskLater(Bastion.getPlugin(), 1);
+		}.runTaskLater(Bastion.getInstance(), 1);
 		storage.deleteDeadBastion(loc); // just in case.
 	}
 	
@@ -63,7 +63,7 @@ public class BastionBreakListener implements Listener {
 			type = storage.getAndRemovePendingBastion(block.getLocation());
 		}
 		if(type != null) {
-			Bastion.getPlugin().getLogger().log(Level.INFO, "BastionType broken {0}", type.toString());
+			Bastion.getInstance().getLogger().log(Level.INFO, "BastionType broken {0}", type.toString());
 
 			TextComponent chatMessage = null;
 			BastionBlock bastion = storage.getBastionBlock(block.getLocation());

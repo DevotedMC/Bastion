@@ -21,7 +21,6 @@ import org.bukkit.entity.Player;
 import isaac.bastion.Bastion;
 import isaac.bastion.BastionBlock;
 import isaac.bastion.BastionType;
-import isaac.bastion.Permissions;
 import isaac.bastion.event.BastionDamageEvent;
 import isaac.bastion.event.BastionDamageEvent.Cause;
 import isaac.bastion.storage.BastionBlockStorage;
@@ -31,6 +30,8 @@ import net.md_5.bungee.api.chat.hover.content.Text;
 import vg.civcraft.mc.citadel.model.Reinforcement;
 import vg.civcraft.mc.civmodcore.util.Iteration;
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.mc.GroupAPI;
 
 public class BastionBlockManager {
 	private static Random rng = new Random();
@@ -44,12 +45,12 @@ public class BastionBlockManager {
 
 	// For block places
 	public void erodeFromPlace(Player player, Set<BastionBlock> blocking) {
-		erodeFromAction(player, blocking, Cause.BLOCK_PLACED, PermissionType.getPermission(Permissions.BASTION_PLACE));
+		erodeFromAction(player, blocking, Cause.BLOCK_PLACED, Bastion.getInstance().getPermissionManager().getPlaceInBastion());
 	}
 
 	// For pearls
 	public void erodeFromTeleport(Player player, Set<BastionBlock> blocking) {
-		erodeFromAction(player, blocking, Cause.PEARL,  PermissionType.getPermission(Permissions.BASTION_PEARL));
+		erodeFromAction(player, blocking, Cause.PEARL,  Bastion.getInstance().getPermissionManager().getPearlInBastion());
 	}
 
 	/**
@@ -196,7 +197,7 @@ public class BastionBlockManager {
 
 	public Set<BastionBlock> getBlockingBastionsWithoutPermission(Location loc, UUID player,
 			PermissionType permission) {
-		return getBlockingBastions(loc, b -> !NameAPI.getGroupManager().hasAccess(b.getGroup(), player, permission));
+		return getBlockingBastions(loc, b -> !GroupAPI.hasPermission(player, b.getGroup(), permission));
 	}
 
 	public Set<BastionBlock> getBlockingBastions(Location loc, Predicate<BastionBlock> filter) {
@@ -221,12 +222,12 @@ public class BastionBlockManager {
 		if (player == null || groupId == null) {
 			return false;
 		}
-		Group group = GroupManager.getGroup(groupId);
+		Group group = GroupAPI.getGroup(groupId);
 		if (group == null) {
 			return false;
 		}
-		PermissionType permission = PermissionType.getPermission(Permissions.BASTION_LIST);
-		return NameAPI.getGroupManager().hasAccess(group, player.getUniqueId(), permission);
+		PermissionType permission = Bastion.getInstance().getPermissionManager().getListBastion();
+		return GroupAPI.hasPermission(player, group, permission);
 	}
 
 	public TextComponent bastionDeletedMessageComponent(BastionBlock bastion) {
@@ -285,7 +286,7 @@ public class BastionBlockManager {
 			Set<BastionType> alliedBastions = new HashSet<>();
 			Set<BastionType> enemyBastions = new HashSet<>();
 			for (BastionBlock bas : bastions) {
-				if (NameAPI.getGroupManager().hasAccess(bas.getGroup(), player.getUniqueId(), PermissionType.getPermission(Permissions.BASTION_PLACE))) {
+				if (GroupAPI.hasPermission(player, bas.getGroup(), Bastion.getInstance().getPermissionManager().getPlaceInBastion())) {
 					alliedBastions.add(bas.getType());
 				} else {
 					enemyBastions.add(bas.getType());
@@ -325,11 +326,9 @@ public class BastionBlockManager {
 		}
 
 		Reinforcement oldReinf = bastion.getReinforcement();
-
-		if (NameAPI.getGroupManager().hasAccess(reinforcement.getGroup(), player.getUniqueId(),
-				PermissionType.getPermission(Permissions.BASTION_PLACE))
-				&& NameAPI.getGroupManager().hasAccess(oldReinf.getGroup(), player.getUniqueId(),
-						PermissionType.getPermission(Permissions.BASTION_PLACE))) {
+		PermissionType permission = Bastion.getInstance().getPermissionManager().getPlaceInBastion();
+		if (GroupAPI.hasPermission(player, reinforcement.getGroup(), permission)
+				&& GroupAPI.hasPermission(player, oldReinf.getGroup(), Bastion.getInstance().getPermissionManager().getPlaceInBastion())) {		
 			storage.changeBastionGroup(bastion);
 			return Boolean.TRUE;
 		} else {

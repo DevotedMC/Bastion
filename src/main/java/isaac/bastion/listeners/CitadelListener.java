@@ -9,7 +9,6 @@ import org.bukkit.event.Listener;
 import isaac.bastion.Bastion;
 import isaac.bastion.BastionBlock;
 import isaac.bastion.BastionType;
-import isaac.bastion.Permissions;
 import isaac.bastion.manager.BastionBlockManager;
 import vg.civcraft.mc.citadel.events.ReinforcementCreationEvent;
 
@@ -24,7 +23,7 @@ public class CitadelListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onReinforcementCreation(ReinforcementCreationEvent event) {
 		Set<BastionBlock> preblocking = blockManager.getBlockingBastionsWithoutPermission(event.getReinforcement().getLocation(), 
-				event.getPlayer().getUniqueId(), PermissionType.getPermission(Permissions.BASTION_PLACE));
+				event.getPlayer().getUniqueId(), Bastion.getInstance().getPermissionManager().getPlaceInBastion());
 		for(BastionBlock bastion : preblocking) {
 			BastionType type = bastion.getType();
 			if(type.isBlockReinforcements()) {

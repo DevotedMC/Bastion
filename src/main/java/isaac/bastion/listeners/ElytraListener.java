@@ -34,7 +34,7 @@ public class ElytraListener implements Listener {
 		//Bastion.getPlugin().getLogger().info("Via elytra");
 		
 		if (manager.handleElytraMovement(p, event.getTo())) {
-			Bastion.getPlugin().getLogger().info("Blocked.");
+			Bastion.getInstance().getLogger().info("Blocked.");
 			event.setCancelled(true);
 		}
 	}

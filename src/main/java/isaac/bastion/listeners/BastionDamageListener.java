@@ -33,7 +33,6 @@ import org.bukkit.inventory.ItemStack;
 
 import isaac.bastion.Bastion;
 import isaac.bastion.BastionBlock;
-import isaac.bastion.Permissions;
 import isaac.bastion.manager.BastionBlockManager;
 import isaac.bastion.manager.EnderPearlManager;
 import vg.civcraft.mc.civmodcore.api.ItemNames;
@@ -53,7 +52,7 @@ public final class BastionDamageListener implements Listener {
 		Set<Block> blocks = new CopyOnWriteArraySet<>();
 		blocks.add(event.getBlock());
 		Set<BastionBlock> blocking = blockManager.getBlockingBastionsWithoutPermission(event.getBlock().getLocation(),
-				event.getPlayer().getUniqueId(), PermissionType.getPermission(Permissions.BASTION_PLACE));
+				event.getPlayer().getUniqueId(), Bastion.getInstance().getPermissionManager().getPlaceInBastion());
 		for(BastionBlock bastion : blocking) {
 			if (!bastion.getType().isOnlyDirectDestruction()) {
 				event.setCancelled(true);
@@ -117,7 +116,7 @@ public final class BastionDamageListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onBucketEmpty(PlayerBucketEmptyEvent event) {
 		Set<BastionBlock> blocking = blockManager.getBlockingBastionsWithoutPermission(event.getBlock().getLocation(),
-				event.getPlayer().getUniqueId(), PermissionType.getPermission(Permissions.BASTION_PLACE));
+				event.getPlayer().getUniqueId(), Bastion.getInstance().getPermissionManager().getPlaceInBastion());
 		if (!blocking.isEmpty()) {
 			event.setCancelled(true);
 			if (!Bastion.getSettingManager().getIgnorePlacementMessages(event.getPlayer().getUniqueId())) {
@@ -154,7 +153,7 @@ public final class BastionDamageListener implements Listener {
 		}
 
 		Set<BastionBlock> blocking = blockManager.getBlockingBastionsWithoutPermission(event.getTo(), event.getPlayer().getUniqueId(),
-				PermissionType.getPermission(Permissions.BASTION_PEARL));
+				Bastion.getInstance().getPermissionManager().getPearlInBastion());
 
 		Iterator<BastionBlock> i = blocking.iterator();
 
@@ -183,7 +182,7 @@ public final class BastionDamageListener implements Listener {
 		}
 
 		blocking = blockManager.getBlockingBastionsWithoutPermission(event.getFrom(), event.getPlayer().getUniqueId(),
-				PermissionType.getPermission(Permissions.BASTION_PEARL));
+				Bastion.getInstance().getPermissionManager().getPearlInBastion());
 
 		i = blocking.iterator();
 

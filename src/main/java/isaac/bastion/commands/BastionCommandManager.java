@@ -21,7 +21,7 @@ public class BastionCommandManager implements CommandExecutor {
 				sender.sendMessage(convertStreamToString(input));
 				return true;
 			} else if(args[0].equalsIgnoreCase("about")){
-				sender.sendMessage(ChatColor.GREEN+"Bastion version "+Bastion.getPlugin().getDescription().getVersion());
+				sender.sendMessage(ChatColor.GREEN+"Bastion version "+Bastion.getInstance().getDescription().getVersion());
 				return true;
 			}
 		}

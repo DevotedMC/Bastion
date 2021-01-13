@@ -20,7 +20,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import isaac.bastion.Bastion;
 import isaac.bastion.BastionBlock;
 import isaac.bastion.BastionType;
-import isaac.bastion.Permissions;
 import isaac.bastion.utils.BastionSettingManager;
 import vg.civcraft.mc.civmodcore.playersettings.PlayerSetting;
 import vg.civcraft.mc.civmodcore.playersettings.SettingChangeListener;
@@ -29,14 +28,14 @@ import vg.civcraft.mc.civmodcore.scoreboard.bottom.BottomLine;
 import vg.civcraft.mc.civmodcore.scoreboard.bottom.BottomLineAPI;
 import vg.civcraft.mc.civmodcore.scoreboard.side.CivScoreBoard;
 import vg.civcraft.mc.civmodcore.scoreboard.side.ScoreBoardAPI;
+import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.mc.GroupAPI;
 
 public class ModeListener implements Listener {
 
 	private BottomLine bsiBottomLine;
 	private CivScoreBoard bsiBoard;
 	private BastionSettingManager settingMan;
-
-	private PermissionType placePerm;
 
 	public ModeListener() {
 		this.bsiBoard = ScoreBoardAPI.createBoard("bsiDisplay");
@@ -61,7 +60,6 @@ public class ModeListener implements Listener {
 				updateDisplayedInformation(Bukkit.getPlayer(player), Bukkit.getPlayer(player).getLocation());
 			}
 		});
-		this.placePerm = PermissionType.getPermission(Permissions.BASTION_PLACE);
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -107,10 +105,11 @@ public class ModeListener implements Listener {
 			}
 			return;
 		}
+		PermissionType perm = Bastion.getInstance().getPermissionManager().getPlaceInBastion();
 		Set<BastionType> alliedBastions = new HashSet<>();
 		Set<BastionType> enemyBastions = new HashSet<>();
 		for (BastionBlock bastion : bastionBlocks) {
-			if (NameAPI.getGroupManager().hasAccess(bastion.getGroup(), player.getUniqueId(), placePerm)) {
+			if (GroupAPI.hasPermission(player, bastion.getGroup(), perm)) {
 				alliedBastions.add(bastion.getType());
 			} else {
 				enemyBastions.add(bastion.getType());

@@ -25,7 +25,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import isaac.bastion.Bastion;
 import isaac.bastion.BastionBlock;
 import isaac.bastion.BastionType;
-import isaac.bastion.Permissions;
 import isaac.bastion.commands.PlayersStates;
 import isaac.bastion.commands.PlayersStates.Mode;
 import isaac.bastion.manager.BastionBlockManager;
@@ -34,6 +33,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import vg.civcraft.mc.citadel.Citadel;
 import vg.civcraft.mc.citadel.events.ReinforcementCreationEvent;
 import vg.civcraft.mc.citadel.model.Reinforcement;
+import vg.civcraft.mc.namelayer.mc.GroupAPI;
 
 public class BastionInteractListener implements Listener {
 
@@ -59,7 +59,7 @@ public class BastionInteractListener implements Listener {
 			Set<Block> blocks = new CopyOnWriteArraySet<>();
 			blocks.add(event.getClickedBlock());
 			Set<BastionBlock> blocking = blockManager.getBlockingBastionsWithoutPermission(event.getClickedBlock().getLocation(),
-					event.getPlayer().getUniqueId(), PermissionType.getPermission(Permissions.BASTION_PLACE));
+					event.getPlayer().getUniqueId(),Bastion.getInstance().getPermissionManager().getPlaceInBastion());
 			if (!blocking.isEmpty()) {
 				event.setCancelled(true);
 				player.sendMessage(ChatColor.RED+"Boat blocked by bastion");
@@ -108,7 +108,7 @@ public class BastionInteractListener implements Listener {
 			if(type == null) return; //if it wasnt stored it cant have been a bastion
 			Reinforcement reinforcement = Citadel.getInstance().getReinforcementManager().getReinforcement(block.getLocation());
 
-			if (NameAPI.getGroupManager().hasAccess(reinforcement.getGroup(), player.getUniqueId(), PermissionType.getPermission(Permissions.BASTION_PLACE))) {
+			if (GroupAPI.hasPermission(player, reinforcement.getGroup(), Bastion.getInstance().getPermissionManager().getPlaceInBastion())) {
 				final Location loc = block.getLocation().clone();
 				new BukkitRunnable() {
 					@Override
@@ -121,7 +121,7 @@ public class BastionInteractListener implements Listener {
 							player.sendMessage(ChatColor.RED + "Failed to create bastion");
 						}
 					}
-				}.runTask(Bastion.getPlugin());
+				}.runTask(Bastion.getInstance());
 			} else{
 				player.sendMessage(ChatColor.RED + "You don't have the right permission");
 			}
@@ -137,7 +137,7 @@ public class BastionInteractListener implements Listener {
 
 		BastionType type = blockToType(event.getBlock(), inHand);
 		if(type != null) {
-			Bastion.getPlugin().getLogger().log(Level.INFO, "Pending a bastion at {0}", event.getBlock().getLocation());
+			Bastion.getInstance().getLogger().log(Level.INFO, "Pending a bastion at {0}", event.getBlock().getLocation());
 			blockStorage.addPendingBastion(event.getBlock().getLocation(), type);
 		}
 	}
@@ -151,7 +151,7 @@ public class BastionInteractListener implements Listener {
 				// Check Permissions.BASTION_PLACE; Citadel handles the canBypass() check...
 				Reinforcement reinforcement = event.getReinforcement();
 				final Player player = event.getPlayer();
-				if (!NameAPI.getGroupManager().hasAccess(reinforcement.getGroup(), player.getUniqueId(), PermissionType.getPermission(Permissions.BASTION_PLACE))) {
+				if (!GroupAPI.hasPermission(player, reinforcement.getGroup(), Bastion.getInstance().getPermissionManager().getPlaceInBastion())) {
 					event.setCancelled(true);
 					event.getPlayer().sendMessage(ChatColor.RED + "You lack permission to create a Bastion on this group");
 					blockStorage.addPendingBastion(block.getLocation(), type);
@@ -159,7 +159,7 @@ public class BastionInteractListener implements Listener {
 				}
 				// end Check Permissions.BASTION_PLACE
 				
-				Bastion.getPlugin().getLogger().log(Level.INFO, "Registering to create a {0} bastion", type);
+				Bastion.getInstance().getLogger().log(Level.INFO, "Registering to create a {0} bastion", type);
 				final Location loc = block.getLocation().clone();
 				// Can't do it immediately, as the reinforcement doesn't exist _during_ the create event.
 				new BukkitRunnable() {
@@ -173,7 +173,7 @@ public class BastionInteractListener implements Listener {
 							player.sendMessage(ChatColor.RED + "Failed to create bastion");
 						}
 					}
-				}.runTask(Bastion.getPlugin());
+				}.runTask(Bastion.getInstance());
 			} else {
 				if (blockManager.changeBastionGroup(event.getPlayer(), event.getReinforcement(), block.getLocation()) == Boolean.FALSE) {
 					event.setCancelled(true);

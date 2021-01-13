@@ -1,6 +1,5 @@
 package isaac.bastion;
 
-import java.util.LinkedList;
 import java.util.logging.Level;
 
 import org.bukkit.configuration.ConfigurationSection;
@@ -14,24 +13,22 @@ import isaac.bastion.listeners.BastionInteractListener;
 import isaac.bastion.listeners.CitadelListener;
 import isaac.bastion.listeners.ElytraListener;
 import isaac.bastion.listeners.ModeListener;
-import isaac.bastion.listeners.NameLayerListener;
 import isaac.bastion.manager.BastionBlockManager;
 import isaac.bastion.storage.BastionBlockStorage;
-import isaac.bastion.storage.BastionGroupStorage;
 import isaac.bastion.storage.Database;
 import isaac.bastion.utils.BastionSettingManager;
 import vg.civcraft.mc.civmodcore.ACivMod;
 import vg.civcraft.mc.civmodcore.dao.ManagedDatasource;
-import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
-import vg.civcraft.mc.namelayer.mc.GroupAPI;
+import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 public final class Bastion extends ACivMod {
+	
 	private static Bastion plugin;
 	private static BastionBlockStorage blockStorage;
 	private static BastionBlockManager blockManager;
-	private static BastionGroupStorage groupStorage;
 	private static BastionSettingManager settingManager;
 	private static CommonSettings commonSettings;
+	private BastionPermissionManager permissionManager;
 
 	@Override
 	public void onEnable() 	{
@@ -42,7 +39,7 @@ public final class Bastion extends ACivMod {
 		BastionType.loadBastionTypes(getConfig().getConfigurationSection("bastions"));
 		commonSettings = CommonSettings.load(getConfig().getConfigurationSection("commonSettings"));
 		setupDatabase();
-		registerNameLayerPermissions();
+		permissionManager = new BastionPermissionManager(NameLayerPlugin.getInstance().getGroupTracker().getPermissionTracker());
 		blockManager = new BastionBlockManager();
 		settingManager = new BastionSettingManager();
 		
@@ -57,11 +54,6 @@ public final class Bastion extends ACivMod {
 	@Override
 	public void onDisable() {
 		blockStorage.close();
-		groupStorage.close();
-	}
-	
-	public String getPluginName() {
-		return "Bastion";
 	}
 	
 	private void registerListeners() {
@@ -70,7 +62,6 @@ public final class Bastion extends ACivMod {
 		getServer().getPluginManager().registerEvents(new BastionInteractListener(), this);
 		getServer().getPluginManager().registerEvents(new ElytraListener(), this);
 		getServer().getPluginManager().registerEvents(new BastionBreakListener(blockStorage, blockManager), this);
-		getServer().getPluginManager().registerEvents(new NameLayerListener(blockStorage), this);
 		getServer().getPluginManager().registerEvents(new CitadelListener(), this);
 		getServer().getPluginManager().registerEvents(new ModeListener(), this);
 	}
@@ -106,9 +97,6 @@ public final class Bastion extends ACivMod {
 		blockStorage = new BastionBlockStorage(db, getLogger());
 		blockStorage.loadBastions();
 		getLogger().log(Level.INFO, "All Bastions loaded");
-
-		groupStorage = new BastionGroupStorage(db, getLogger());
-		groupStorage.loadGroups();
 	}
 	
 	//Sets up the command managers
@@ -122,7 +110,7 @@ public final class Bastion extends ACivMod {
 		getCommand("bsm").setExecutor(new ModeChangeCommand(Mode.MATURE));
 	}
 
-	public static Bastion getPlugin() {
+	public static Bastion getInstance() {
 		return plugin;
 	}
 	
@@ -137,14 +125,11 @@ public final class Bastion extends ACivMod {
 	public static BastionSettingManager getSettingManager() {
 		return settingManager;
 	}
+	
+	public BastionPermissionManager getPermissionManager() {
+		return permissionManager;
+	}
 
 	public static CommonSettings getCommonSettings() { return commonSettings; }
-
-	private void registerNameLayerPermissions() {
-		GroupAPI.registerPermission(Permissions.BASTION_PEARL, DefaultPermissionLevel.MEMBER, "Allows a player to throw a pearl into a bastion field.");
-		GroupAPI.registerPermission(Permissions.BASTION_PLACE, DefaultPermissionLevel.MOD, "Allows a player to place blocks within a bastion field.");
-		GroupAPI.registerPermission(Permissions.BASTION_LIST, DefaultPermissionLevel.MOD, "Allows a player to see all bastions under this group.");
-		GroupAPI.registerPermission(Permissions.BASTION_MANAGE_GROUPS, DefaultPermissionLevel.ADMIN, "Allows linking bastion groups.");
-	}
 
 }

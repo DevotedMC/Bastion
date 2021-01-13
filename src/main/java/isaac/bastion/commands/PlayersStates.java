@@ -32,7 +32,7 @@ public class PlayersStates {
 		@Override
 		public void run() {
 			try {
-				PlayersStates.setModeForPlayer(Bastion.getPlugin().getServer().getPlayer(forPlayer), forMode);
+				PlayersStates.setModeForPlayer(Bastion.getInstance().getServer().getPlayer(forPlayer), forMode);
 			} catch (NullPointerException e) {
 				// TODO: player offline perhaps? do something here.
 			}

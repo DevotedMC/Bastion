@@ -12,11 +12,12 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.citadel.Citadel;
-import vg.civcraft.mc.citadel.CitadelPermissionHandler;
 import vg.civcraft.mc.citadel.ReinforcementLogic;
 import vg.civcraft.mc.citadel.model.Reinforcement;
 import vg.civcraft.mc.civmodcore.locations.QTBox;
 import vg.civcraft.mc.civmodcore.util.TextUtil;
+import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
 
 public class BastionBlock implements QTBox, Comparable<BastionBlock> {
@@ -24,12 +25,13 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 
 	private Location location;
 	private int id = -1;
-	private long placed; //time when the bastion block was created
+	private long placed; // time when the bastion block was created
 	private BastionType type;
 	private Integer listGroupId;
 
 	/**
 	 * constructor for blocks loaded from database
+	 * 
 	 * @param location
 	 * @param placed
 	 * @param id
@@ -45,9 +47,10 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		Reinforcement reinforcement = getReinforcement();
 		if (reinforcement != null) {
 			this.listGroupId = reinforcement.getGroupId();
-		} else{
+		} else {
 			destroy();
-			Bastion.getPlugin().severe("Reinforcement removed during BastionBlock instantiation, removing at " + location.toString());
+			Bastion.getInstance().severe(
+					"Reinforcement removed during BastionBlock instantiation, removing at " + location.toString());
 		}
 
 	}
@@ -58,12 +61,12 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 	public double getErosionFromBlock() {
 		double scaleStart = type.getStartScaleFactor();
 		double scaleEnd = type.getFinalScaleFactor();
-		
+
 		long time = System.currentTimeMillis() - placed;
-		
-		if(type.getWarmupTime() == 0) {
+
+		if (type.getWarmupTime() == 0) {
 			return scaleStart;
-		} else if(time < type.getWarmupTime()) {
+		} else if (time < type.getWarmupTime()) {
 			return (((scaleEnd - scaleStart) / type.getWarmupTime()) * time + scaleStart);
 		} else {
 			return scaleEnd;
@@ -83,7 +86,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 	public double getErosionFromElytra() {
 		return getErosionFromBlock() * type.getElytraScale();
 	}
-	
+
 	/**
 	 * Checks if a location is inside this bastion field.
 	 * 
@@ -92,17 +95,16 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 	 */
 	public boolean inField(Location loc) {
 		return !(yLevelCheck(loc) || // don't add parens if you don't know why it wasn't there.
-				(type.isSquare() &&
-					(Math.abs(loc.getBlockX() - location.getBlockX()) > type.getEffectRadius() ||
-					Math.abs(loc.getBlockZ() - location.getBlockZ()) > type.getEffectRadius() ) ) ||
-				(!type.isSquare() &&
-					((loc.getBlockX() - location.getX()) * (float)(loc.getBlockX() - location.getX()) + 
-					(loc.getBlockZ() - location.getZ()) * (float)(loc.getBlockZ() - location.getZ()) >= type.getRadiusSquared() ) )
-				);
+				(type.isSquare() && (Math.abs(loc.getBlockX() - location.getBlockX()) > type.getEffectRadius()
+						|| Math.abs(loc.getBlockZ() - location.getBlockZ()) > type.getEffectRadius()))
+				|| (!type.isSquare()
+						&& ((loc.getBlockX() - location.getX()) * (float) (loc.getBlockX() - location.getX())
+								+ (loc.getBlockZ() - location.getZ())
+										* (float) (loc.getBlockZ() - location.getZ()) >= type.getRadiusSquared())));
 	}
-	
+
 	public boolean yLevelCheck(Location loc) {
-		if(type.isIncludeY()) {
+		if (type.isIncludeY()) {
 			return loc.getBlockY() < location.getBlockY();
 		}
 		return loc.getBlockY() <= location.getBlockY();
@@ -110,51 +112,57 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 
 	/**
 	 * checks if a player would be allowed to remove the Bastion block
+	 * 
 	 * @param player The player to check
 	 * @return true if the player can remove the bastion
 	 */
-	public boolean canRemove(Player player){
+	public boolean canRemove(Player player) {
 
 		Reinforcement reinforcement = getReinforcement();
 
-		if(reinforcement!=null){
-			return reinforcement.hasPermission(player, CitadelPermissionHandler.getBypass()); //should return true if founder or moderator, but I feel this is more consistant
+		if (reinforcement != null) {
+			return reinforcement.hasPermission(player, Citadel.getInstance().getPermissionHandler().getBypass());
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Check if a player is allowed to pearl in the bastion field
+	 * 
 	 * @param player The player to check
 	 * @return true if the player can pearl within the bastion
 	 */
 	public boolean canPearl(Player player) {
 		Reinforcement reinforcement = getReinforcement();
 
-		if(reinforcement!=null){
-			return GroupAPI.hasPermission(player, reinforcement.getGroup(), PermissionType.getPermission(Permissions.BASTION_PEARL));
+		if (reinforcement != null) {
+			return GroupAPI.hasPermission(player, reinforcement.getGroup(),
+					Bastion.getInstance().getPermissionManager().getPearlInBastion());
 		}
 		return true;
 	}
 
 	/**
 	 * Check if a player is allowed to place blocks in the bastion field
+	 * 
 	 * @param player The player to check
 	 * @return true if the player can place blocks within the bastion
 	 */
 	public boolean canPlace(Player player) {
 		Reinforcement reinforcement = getReinforcement();
 
-		if (reinforcement == null) return true;
-		if (player == null) return false;
-
-		return NameAPI.getGroupManager().hasAccess(reinforcement.getGroup(), player.getUniqueId(), PermissionType.getPermission(Permissions.BASTION_PLACE));
+		if (reinforcement == null)
+			return true;
+		if (player == null)
+			return false;
+		return GroupAPI.hasPermission(player, reinforcement.getGroup(), Bastion.getInstance().getPermissionManager().getPlaceInBastion());		
 	}
-	
+
 	/**
 	 * Checks if a player has a permission for the bastion's group
+	 * 
 	 * @param player The player to check
-	 * @param perm The permission to check
+	 * @param perm   The permission to check
 	 * @return true if the player has the permission
 	 */
 	public boolean permAccess(Player player, PermissionType perm) {
@@ -162,31 +170,31 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		if (rein == null) {
 			return true;
 		}
-		return NameAPI.getGroupManager().hasAccess(rein.getGroup(), player.getUniqueId(), perm);
+		return GroupAPI.hasPermission(player, rein.getGroup(), perm);
 	}
 
 	/**
-	 * Checks if any of the players in the bastion field
-	 * This is used mostly for checking if a dispenser can place things
+	 * Checks if any of the players in the bastion field This is used mostly for
+	 * checking if a dispenser can place things
+	 * 
 	 * @param players the players to check
 	 * @return true if any of the players can place blocks in this bastion
 	 */
-	public boolean oneCanPlace(Set<UUID> players){
+	public boolean oneCanPlace(Set<UUID> players) {
 		Reinforcement reinforcement = getReinforcement();
-		//the object will have been closed if null but we still don't want things to crash
+		// the object will have been closed if null but we still don't want things to
+		// crash
 		if (reinforcement == null) {
-			return true; 
+			return true;
 		}
 
-		for (UUID player: players){
+		for (UUID player : players) {
 			if (player != null)
-				if (NameAPI.getGroupManager().hasAccess(reinforcement.getGroup(), player, PermissionType.getPermission(Permissions.BASTION_PLACE)))
+				if (GroupAPI.hasPermission(player, reinforcement.getGroup(), Bastion.getInstance().getPermissionManager().getPlaceInBastion()))
 					return true;
 		}
-
 		return false;
 	}
-
 
 	/**
 	 * @return true if the Bastion's strength is at zero and it should be removed
@@ -194,22 +202,23 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 	public boolean shouldCull() {
 		return getReinforcement() == null || getReinforcement().getHealth() < 0;
 	}
-	
+
 	/**
 	 * Regenerates one hp on the bastion up to the cap based on reinforcement
 	 */
 	public void regen() {
 		Reinforcement rein = getReinforcement();
-		if(rein != null) {
-				ReinforcementLogic.damageReinforcement(rein, -1 , null);
-			} else {
-				destroy();
-				Bastion.getPlugin().severe("Reinforcement removed without removing bastion, fixed at " + location);
+		if (rein != null) {
+			ReinforcementLogic.damageReinforcement(rein, -1, null);
+		} else {
+			destroy();
+			Bastion.getInstance().severe("Reinforcement removed without removing bastion, fixed at " + location);
 		}
 	}
 
 	/**
 	 * removes a set amount of durability from the reinforcement
+	 * 
 	 * @param amount The amount to remove
 	 */
 	public void erode(double amount) {
@@ -217,10 +226,10 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		if (rein == null) {
 			return;
 		}
-		ReinforcementLogic.damageReinforcement(getReinforcement(), (float) amount , null);
+		ReinforcementLogic.damageReinforcement(getReinforcement(), (float) amount, null);
 		if (shouldCull()) {
 			destroy();
-			Bastion.getPlugin().severe("Reinforcement destroyed, removing bastion");
+			Bastion.getInstance().severe("Reinforcement destroyed, removing bastion");
 		}
 	}
 
@@ -231,9 +240,10 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		placed -= type.getWarmupTime();
 		Bastion.getBastionStorage().updated(this);
 	}
-	
+
 	/**
 	 * Checks if the bastion is mature
+	 * 
 	 * @return true if the bastion is mature
 	 */
 	public boolean isMature() {
@@ -242,22 +252,17 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 
 	/**
 	 * Gets the reinforcement for this bastion
+	 * 
 	 * @return The reinforcement for this bastion
 	 */
 	public Reinforcement getReinforcement() {
 		Reinforcement reinforcement = Citadel.getInstance().getReinforcementManager().getReinforcement(location);
-		if(reinforcement == null) {
+		if (reinforcement == null) {
 			destroy();
-			Bastion.getPlugin().severe("Reinforcement no longer exists, but bastion not removed, fixed at " + location);
+			Bastion.getInstance()
+					.severe("Reinforcement no longer exists, but bastion not removed, fixed at " + location);
 		}
 		return reinforcement;
-	}
-
-	/**
-	 * Gets the owner of the bastion's group
-	 */
-	public UUID getOwner() {
-		return getReinforcement().getGroup().getOwner();
 	}
 
 	/**
@@ -266,21 +271,21 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 	public Location getLocation() {
 		return location;
 	}
-	
+
 	/**
 	 * Gets the bastion's ID
 	 */
 	public int getId() {
 		return id;
 	}
-	
+
 	/**
 	 * Gets the bastion's type
 	 */
 	public BastionType getType() {
 		return type;
 	}
-	
+
 	/**
 	 * Gets how long the bastion has been in the world in ms
 	 */
@@ -306,7 +311,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 	// needed to use SparseQuadTree
 	@Override
 	public int qtXMin() {
-		return location.getBlockX()-type.getEffectRadius();
+		return location.getBlockX() - type.getEffectRadius();
 	}
 
 	@Override
@@ -316,12 +321,12 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 
 	@Override
 	public int qtXMax() {
-		return location.getBlockX()+type.getEffectRadius();
+		return location.getBlockX() + type.getEffectRadius();
 	}
 
 	@Override
 	public int qtZMin() {
-		return location.getBlockZ()-type.getEffectRadius();
+		return location.getBlockZ() - type.getEffectRadius();
 	}
 
 	@Override
@@ -331,40 +336,44 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 
 	@Override
 	public int qtZMax() {
-		return location.getBlockZ()+type.getEffectRadius();
+		return location.getBlockZ() + type.getEffectRadius();
 	}
 
 	@Override
 	public String toString() {
 		SimpleDateFormat dateFormator = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		StringBuilder result = new StringBuilder(ChatColor.GOLD + "" + ChatColor.BOLD + "Bastion Info" + ChatColor.AQUA + "\n");
+		StringBuilder result = new StringBuilder(
+				ChatColor.GOLD + "" + ChatColor.BOLD + "Bastion Info" + ChatColor.AQUA + "\n");
 
 		result.append("Health: " + ChatColor.GOLD + "" + getStrengthText() + ChatColor.AQUA + "\n");
 		if (!isMature()) {
-			result.append("Mature in: " + ChatColor.GOLD + "" + TextUtil.formatDuration(type.getWarmupTime()) + ChatColor.AQUA + "\n");
+			result.append("Mature in: " + ChatColor.GOLD + "" + TextUtil.formatDuration(type.getWarmupTime())
+					+ ChatColor.AQUA + "\n");
 		} else {
 			result.append("Mature?: " + ChatColor.GOLD + "Yes" + ChatColor.AQUA + "\n");
 		}
 		result.append("Placed: " + ChatColor.GOLD + "" + dateFormator.format(new Date(placed)) + ChatColor.AQUA + "\n");
 		result.append("Group: " + ChatColor.GOLD + getGroupName() + ChatColor.AQUA + "\n");
-		result.append("Location: " + ChatColor.GOLD + "" + this.location.getBlockX() + " " + this.location.getBlockY() + " " + this.location.getBlockZ());
+		result.append("Location: " + ChatColor.GOLD + "" + this.location.getBlockX() + " " + this.location.getBlockY()
+				+ " " + this.location.getBlockZ());
 		return result.toString();
 	}
 
 	/**
 	 * Creates an info message, adds more info if dev is true
+	 * 
 	 * @param dev If the player is a dev
 	 * @return An info message
 	 */
 	public String infoMessage(boolean dev) {
 		StringBuilder result = new StringBuilder(ChatColor.GREEN.toString());
 		if (dev) {
-			return result.append( this.toString() ).toString();
+			return result.append(this.toString()).toString();
 		}
 
 		String strength = getStrengthText();
 
-		if(strength != null) {
+		if (strength != null) {
 			result.append("Bastion: ");
 			result.append(strength);
 		}
@@ -405,31 +414,29 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 	public String getLocationText() {
 		String worldText = "";
 
-		if (this.location != null
-				&& this.location.getWorld() != null
-				&& this.location.getWorld().getName() != null
-				)
-		{
+		if (this.location != null && this.location.getWorld() != null && this.location.getWorld().getName() != null) {
 			worldText = String.format("%s ", this.location.getWorld().getName());
 		}
 
-		return String.format("[%s%d %d %d]", worldText, this.location.getBlockX(), this.location.getBlockY(), this.location.getBlockZ());
+		return String.format("[%s%d %d %d]", worldText, this.location.getBlockX(), this.location.getBlockY(),
+				this.location.getBlockZ());
 	}
 
 	private String getGroupName() {
-		if(this.listGroupId == null) return "";
-
-		Group group = GroupManager.getGroup(this.listGroupId);
-
+		if (this.listGroupId == null) {
+			return "";
+		}
+		Group group = getGroup();
 		return group != null ? group.getName() : "";
 	}
 
-	public Group getGroup () {
-		return GroupManager.getGroup(this.listGroupId);
+	public Group getGroup() {
+		return GroupAPI.getGroup(this.listGroupId);
 	}
 
 	public String getStrengthText() {
-		return formatter.format(getReinforcement().getHealth()) + "/" + formatter.format(getReinforcement().getType().getHealth());
+		return formatter.format(getReinforcement().getHealth()) + "/"
+				+ formatter.format(getReinforcement().getType().getHealth());
 	}
 
 	// TODO: Test world-aware comparison
@@ -463,7 +470,7 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		if (thisY > otherY) {
 			return 1;
 		}
-		
+
 		if (thisZ < otherZ) {
 			return -1;
 		}
@@ -474,7 +481,6 @@ public class BastionBlock implements QTBox, Comparable<BastionBlock> {
 		return 0;
 	}
 
-	
 	/**
 	 * removes Bastion from database and destroys the block at the location
 	 */

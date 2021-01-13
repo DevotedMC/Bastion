@@ -425,7 +425,7 @@ public class EnderPearlManager {
 					currentTask = -1;
 					next();
 				}
-			}.runTaskLater(Bastion.getPlugin(), onTask.timeToEnd()).getTaskId();
+			}.runTaskLater(Bastion.getInstance(), onTask.timeToEnd()).getTaskId();
 		}
 	}
 	

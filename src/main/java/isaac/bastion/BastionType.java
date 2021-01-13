@@ -420,7 +420,7 @@ public class BastionType {
 
 		ItemMeta im = is.hasItemMeta() ? is.getItemMeta() : Bukkit.getItemFactory().getItemMeta(material);
 		if (im == null) {
-			Bastion.getPlugin().getLogger().log(Level.WARNING, "Invalid Bastion configuration, unable to represent as an item for {0}", name);
+			Bastion.getInstance().getLogger().log(Level.WARNING, "Invalid Bastion configuration, unable to represent as an item for {0}", name);
 			return is;
 		}
 		if (lore != null) {
@@ -436,12 +436,12 @@ public class BastionType {
 
 	public static void loadBastionTypes(ConfigurationSection config) {
 		for(String key : config.getKeys(false)) {
-			Bastion.getPlugin().getLogger().log(Level.INFO, "Loading Bastion type {0}", key);
+			Bastion.getInstance().getLogger().log(Level.INFO, "Loading Bastion type {0}", key);
 			BastionType type = getBastionType(config.getConfigurationSection(key));
 			if(type != null) {
 				if(defaultType == null) defaultType = key;
 				types.put(key, type);
-				Bastion.getPlugin().getLogger().log(Level.INFO, "Bastion type {0} loaded: {1}", new Object[]{key, type});
+				Bastion.getInstance().getLogger().log(Level.INFO, "Bastion type {0} loaded: {1}", new Object[]{key, type});
 			}
 		}
 	}
@@ -452,30 +452,30 @@ public class BastionType {
 				new BukkitRunnable() {
 					@Override
 					public void run() {
-						Bastion.getPlugin().getLogger().log(Level.INFO, "Erosion task begin, found " + 
+						Bastion.getInstance().getLogger().log(Level.INFO, "Erosion task begin, found " + 
 								Bastion.getBastionStorage().getBastionsForType(type).size() + " to erode");
 						for(BastionBlock bastion : Bastion.getBastionStorage().getBastionsForType(type)) {
 							bastion.erode(1);
 						}
-						Bastion.getPlugin().getLogger().log(Level.INFO, "Erosion task ended, after erosion " + 
+						Bastion.getInstance().getLogger().log(Level.INFO, "Erosion task ended, after erosion " + 
 								Bastion.getBastionStorage().getBastionsForType(type).size() + " remain");
 					}
-				}.runTaskTimerAsynchronously(Bastion.getPlugin(), type.erosionTime, type.erosionTime);
+				}.runTaskTimerAsynchronously(Bastion.getInstance(), type.erosionTime, type.erosionTime);
 			}
 			if(type.regenTime > 0) {
 				new BukkitRunnable() {
 					@Override
 					public void run() {
-						Bastion.getPlugin().getLogger().log(Level.INFO, "Regen task begin, found " + 
+						Bastion.getInstance().getLogger().log(Level.INFO, "Regen task begin, found " + 
 								Bastion.getBastionStorage().getBastionsForType(type).size() + " to regen");
 						for(BastionBlock bastion : Bastion.getBastionStorage().getBastionsForType(type)) {
 							bastion.regen();
 						}
-						Bastion.getPlugin().getLogger().log(Level.INFO, "Regen task ended, after regen " + 
+						Bastion.getInstance().getLogger().log(Level.INFO, "Regen task ended, after regen " + 
 								Bastion.getBastionStorage().getBastionsForType(type).size() + " remain");
 
 					}
-				}.runTaskTimerAsynchronously(Bastion.getPlugin(), type.regenTime, type.regenTime);
+				}.runTaskTimerAsynchronously(Bastion.getInstance(), type.regenTime, type.regenTime);
 			}
 		}
 	}
@@ -530,7 +530,7 @@ public class BastionType {
 	
 	public static BastionType getBastionType(ConfigurationSection config) {
 		String name = config.getName();
-		Material material = Material.getMaterial(config.getString("block.material"));
+		Material material = Material.valueOf(config.getString("block.material"));
 		if(!material.isBlock())  {
 			return null;
 		}
